@@ -8,6 +8,15 @@
       "ts": "src/oracle.ts",
       "candid": "src/oracle.did",
       "wasm": ".azle/oracle/oracle.wasm.gz"
+    },
+    "ckbtc":{
+      "main":"src/ckBTCDeposit.ts",
+      "type": "custom",
+      "build": "npx azle ckbtc",
+      "root":"src",
+      "ts": "src/ckBTCDeposit.ts",
+      "candid": "src/ckbtc.did",
+      "wasm": ".azle/ckbtc/ckbtc.wasm.gz"
     }
   }
 }
