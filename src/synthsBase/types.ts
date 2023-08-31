@@ -90,7 +90,7 @@ export type TransactionKind = Variant<{
     Transfer: null;
     Approve:null
     TransferFrom:null
-    
+
 }>;
 
 export type ApproveArgs = {
@@ -148,7 +148,15 @@ export type AllowanceArgs =  {
 export type Allowance =  {
     allowance : nat;
     expires_at : Opt< nat64>;
+    
   }
+
+export type AllowanceStorageData = {
+    Allowance: Allowance
+    fee: nat
+    created_at_time: nat
+    memo:blob
+}
 
 export type TransferArgs = {
     amount: nat;
