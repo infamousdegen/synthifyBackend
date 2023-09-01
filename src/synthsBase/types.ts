@@ -188,3 +188,8 @@ export type ValidateTransferResult = Variant<{
     err: TransferError;
 }>;
 
+export type ValidateApproveResult = Variant<{
+    ok:boolean;
+    err:ApproveError;
+}>
+

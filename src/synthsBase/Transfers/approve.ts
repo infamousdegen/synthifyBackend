@@ -12,6 +12,8 @@ import { is_created_at_time_in_future,is_created_at_time_too_old,get_account_key
 //@duplicate: I should check on how to give out duplicate 
 
 //@todoL validate subaccount
+
+//@todo: Subtract fee from the caller
 $query;
 export function icrc2_approve(approve_args:ApproveArgs,memo:blob):Result<nat,ApproveError> {
 

@@ -70,13 +70,13 @@ export function icrc1_minting_account(): Result<Opt<Account>,string>{
 }
 
 $query
-export function icrc1_balance_of(Account:Account): Result<nat,nat>{
+export function icrc1_balance_of(Account:Account): nat{
     return(match(AccountBalance.get(Account),{
         Some: (arg) =>{
-            return Result.Ok<nat,nat>(arg)
+            return (arg)
         },
         //@note: Returns balance of 0 if that account is not found in the storage 
-        None: () =>  Result.Err<nat,nat>(0n)
+        None: () =>  (0n)
     }))
 }
 
