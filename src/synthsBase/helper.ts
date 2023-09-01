@@ -1,6 +1,9 @@
 import { Subaccount,Account,OwnerKey,SubaccountKey, TransferError,ApproveError } from "./types";
-import { Opt,blob,nat32,nat64,ic,nat,match,Result } from "azle";
+import { Opt,blob,nat32,nat64,ic,nat,match,Result,Principal } from "azle";
 import { TokenState } from "./storage/storage";
+
+
+
 
 // Validating whether the subAccount is of 32 bytes
 export function is_subaccount_valid(subaccount: Opt<Subaccount>): boolean {
@@ -34,9 +37,14 @@ export function get_account_keys(account: Account): {
     };
 }
 
-export function is_created_at_time_in_future(currentTime:nat,created_at_time: nat64,permitted_drift_nanos:nat64): boolean {
+export function is_created_at_time_in_future(currentTime:nat,created_at_time: Opt<nat64>,permitted_drift_nanos:nat64): boolean {
     const now = currentTime;
-    let tx_time = created_at_time;
+
+    let tx_time = match(created_at_time,{
+        Some:(arg) =>(arg),
+
+        None:() => currentTime
+    });
 
     
     if (tx_time > now && tx_time - now > permitted_drift_nanos) {
@@ -46,9 +54,15 @@ export function is_created_at_time_in_future(currentTime:nat,created_at_time: na
     }
 }
 
-export function is_created_at_time_too_old(currentTime:nat,created_at_time: nat64,transaction_window_nanos:nat64,permitted_drift_nanos:nat64): boolean {
+export function is_created_at_time_too_old(currentTime:nat,created_at_time: Opt<nat64>,transaction_window_nanos:nat64,permitted_drift_nanos:nat64): boolean {
     const now = currentTime;
-    let tx_time = created_at_time;
+
+    let tx_time = match(created_at_time,{
+        Some:(arg) =>(arg),
+
+        None:() => currentTime
+    });
+
 
 
 
@@ -105,4 +119,24 @@ export function isExpectedAllowance(expected_allowance:Opt<nat>,currentAllowance
     })
 
 
+}
+
+
+//@todo: fix this 
+export function is_minting_account(owner: Principal): boolean {
+
+    return match(TokenState.get(1n),{
+        Some:(arg)=>{
+
+            if(arg.minting_account.Some && owner.toString() === arg.minting_account.Some.owner.toString()){
+                return true
+            }
+
+             return false
+
+        },
+        None:() => {
+            return({TemporarilyUnavailable:null})
+        }
+    })
 }

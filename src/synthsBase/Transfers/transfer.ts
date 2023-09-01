@@ -1,15 +1,13 @@
-import { ic, Update } from 'azle';
-import { handle_burn } from '../transfer/burn';
-import { handle_mint, is_minting_account } from '../transfer/mint';
-import { handle_transfer } from '../transfer/transfer';
-import { validate_transfer } from '../transfer/validate';
+import { ic, nat, Result } from 'azle';
+
+
 import {
     Account,
     TransferArgs,
-    TransferResult
+    TransferError
 } from '../types';
 
-export function icrc1_transfer(args: TransferArgs): Update<TransferResult> {
+export function icrc1_transfer(args: TransferArgs): Result<nat,TransferError> {
     const from: Account = {
         owner: ic.caller(),
         subaccount: args.from_subaccount
