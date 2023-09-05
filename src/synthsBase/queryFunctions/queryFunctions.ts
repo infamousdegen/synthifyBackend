@@ -104,7 +104,7 @@ export function icrc2_allowance(allowance_args:AllowanceArgs):Allowance{
    }
    return(match(AllowanceStorage.get(Key),{
     Some:(args) => {
-        return (args)
+        return (args.Allowance)
     },
     None:() => ({allowance:0n,expires_at:Opt.None})
    })) 

@@ -63,7 +63,6 @@ export type State = {
     supported_standards: SupportedStandard[];
     symbol: string;
     total_supply: nat;
-    //Should Change this 
     transactions: Transaction[];
     transaction_window_nanos: nat64;
     currencyKey:CurrencyKey
@@ -77,7 +76,7 @@ export type SupportedStandard = {
 };
 
 export type Transaction = {
-    args: Opt<TransferArgs>;
+    args: Opt<TransferArgs> | Opt<ApproveArgs>;
     fee: nat;
     from: Opt<Account>;
     kind: TransactionKind;
@@ -100,7 +99,7 @@ export type ApproveArgs = {
     expected_allowance: Opt<nat>
     expires_at: Opt<nat64>
     fee:Opt<nat>
-    memo: Opt<nat>
+    memo: Opt<blob>
     created_at_time:Opt<nat>
 }
 
@@ -155,7 +154,7 @@ export type AllowanceStorageData = {
     Allowance: Allowance
     fee: nat
     created_at_time: nat
-    memo:blob
+    memo:Opt<blob>
 }
 
 export type TransferArgs = {

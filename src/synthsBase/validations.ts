@@ -7,249 +7,219 @@ import {
     ValidateTransferResult,
     ApproveError,
     TransferError,
-    ValidateApproveResult
+    ValidateApproveResult,
+    ApproveArgs,
+    TransactionKind,
+    State,
+    Transaction,
+    AllowanceKey,
+    AllowanceStorageData
+
 } from './types';
 
-import { icrc1_balance_of } from './queryFunctions/queryFunctions';
-import { TokenState } from './storage/storage';
+import { icrc1_balance_of,icrc2_allowance } from './queryFunctions/queryFunctions';
+import { TokenState,AllowanceStorage,AccountBalance } from './storage/storage';
+
+import { get_account_keys } from './helper';
+
 
 import { is_subaccount_valid,
     is_created_at_time_in_future,is_created_at_time_too_old, 
     isValidFee,is_memo_valid,
-    is_minting_account,is_anonymous } from './helper';
-
-
-export function validate_transfer(
-    args: TransferArgs,
-    from: Account
-): ValidateTransferResult {
+    is_minting_account,is_anonymous,isExpectedAllowance,isExpired,isValidBalance } from './helper';
 
 
 
-    let currentStateFee = 0n
-
-    let permitted_drift_nanos = 0n
-
-    let  transaction_window_nanos = 0n
-
-    const currentLedgerTime = ic.time()
-    const finalCreateTime = args.created_at_time.Some ? args.created_at_time.Some : currentLedgerTime
-
-
-    match(TokenState.get(1n),{
-        Some:(arg)=>{
-             currentStateFee = arg.fee
-             permitted_drift_nanos = arg.permitted_drift_nanos
-             transaction_window_nanos = arg.transaction_window_nanos
-        },
-        None:() => {
-            return({
-                err:
-                {
-                    TemporarilyUnavailable:null
-                
-                }
-            })
-        }
-    })
-
-
-    const from_subaccount_is_valid = is_subaccount_valid(args.from_subaccount);
-
-    if (from_subaccount_is_valid === false) {
-        return {
-            err: {
-                GenericError: {
-                    error_code: 0n,
-                    message: 'from_subaccount must be 32 bytes in length'
-                }
-            }
-        };
-    }
-
-    const to_subaccount_is_valid = is_subaccount_valid(args.to.subaccount);
-
-    if (to_subaccount_is_valid === false) {
-        return {
-            err: {
-                GenericError: {
-                    error_code: 0n,
-                    message: 'to.subaccount must be 32 bytes in length'
-                }
-            }
-        };
-    }
-    //@todo: Check for is memo valid 
-
-    const memo_is_valid = is_memo_valid(args.memo);
-
-    if (memo_is_valid === false) {
-        return {
-            err: {
-                GenericError: {
-                    error_code: 0n,
-                    message: 'memo must be a maximum of 32 bytes in length'
-                }
-            }
-        };
-    }
-
-    const created_at_time_is_in_future = is_created_at_time_in_future(currentLedgerTime,
-        finalCreateTime,permitted_drift_nanos
-    );
-
-    if (created_at_time_is_in_future === true) {
-        return {
-            err: {
-                CreatedInFuture: {
-                    ledger_time: currentLedgerTime
-                }
-            }
-        };
-    }
-
-    const created_at_time_too_old = is_created_at_time_too_old(currentLedgerTime,
-        finalCreateTime,transaction_window_nanos,permitted_drift_nanos
-    );
-
-    if (created_at_time_too_old === true) {
-        return {
-            err: {
-                TooOld: null
-            }
-        };
-    }
-
-    //@todo: Do find duplication error
-
-    // const duplicate_transaction_index = find_duplicate_transaction_index(args, from);
-
-    // if (duplicate_transaction_index !== null) {
-    //     return {
-    //         err: {
-    //             Duplicate: {
-    //                 duplicate_of: duplicate_transaction_index
-    //             }
-    //         }
-    //     };
-    // }
-
-    
-
-    //@todo: Not sure if this comparison is useful 
-    const from_is_minting_account = is_minting_account(from.owner);
-
-    if (from_is_minting_account === true && (args.fee.Some ?? 0n) !== 0n) {
-        return {
-            err: {
-                BadFee: {
-                    expected_fee: 0n
-                }
-            }
-        };
-    }
-
-    const to_is_minting_account = is_minting_account(args.to.owner);
-
-    if (to_is_minting_account === true) {
-        if ((args.fee.Some ?? 0n) !== 0n) {
-            return {
-                err: {
-                    BadFee: {
-                        expected_fee: 0n
-                    }
-                }
-            };
-        }
-
-        if (args.amount < currentStateFee) {
-            return {
-                err: {
-                    BadBurn: {
-                        min_burn_amount: currentStateFee
-                    }
-                }
-            };
-        }
-    }
-
-    
-    if (!from_is_minting_account && !to_is_minting_account) {
-        const validateFee = isValidFee(args.fee)
-
-        if(validateFee !== true){
-            return {
-                err: validateFee as TransferError
-                
-            }
-        }
-    }
-
-    const from_balance = icrc1_balance_of(from);
-
-    if (
-        from_is_minting_account === false &&
-        from_balance < args.amount + currentStateFee
-    ) {
-        return {
-            err: {
-                InsufficientFunds: {
-                    balance: from_balance
-                }
-            }
-        };
-    }
-
-
-    const from_is_anonymous = is_anonymous(from.owner);
-
-    if (from_is_anonymous === true) {
-        return {
-            err: {
-                GenericError: {
-                    error_code: 0n,
-                    message: 'anonymous user is not allowed to transfer funds'
-                }
-            }
-        };
-    }
-
-    return {
-        ok: true
-    };
-}
-
-
+//@todo: Do something for duplicate transaction
 export function validate_approve(    
-    args: TransferArgs,
-    from: Account): ValidateApproveResult{
-
-        let currentStateFee = 0n
-
-        let permitted_drift_nanos = 0n
+    args: ApproveArgs,
+    from: Account,
+    currentTokenState:State,
+    currentLedgerTime:nat
+    ): ValidateApproveResult
     
-        let  transaction_window_nanos = 0n
+    {
+
+        const kind: TransactionKind = {
+            Approve: null
+        };
+
+        const Caller: Account = from
+
+        const Spender:Account = args.spender;
+
+
+        let currentFee:nat = currentTokenState.fee;
     
-        const currentLedgerTime = ic.time()
+        let permitted_drift_nanos:nat = currentTokenState.permitted_drift_nanos
+    
+        let  transaction_window_nanos:nat = currentTokenState.transaction_window_nanos
+        
+    
         const finalCreateTime = args.created_at_time.Some ? args.created_at_time.Some : currentLedgerTime
     
+        const oldAllowance = icrc2_allowance({account:Caller,spender:Spender})
+
+        const currentCallerBalance = icrc1_balance_of(Caller)
+
     
-        match(TokenState.get(1n),{
-            Some:(arg)=>{
-                 currentStateFee = arg.fee
-                 permitted_drift_nanos = arg.permitted_drift_nanos
-                 transaction_window_nanos = arg.transaction_window_nanos
-            },
-            None:() => {
-                return({
-                    err:
-                    {
-                        TemporarilyUnavailable:null
-                    
+
+
+        if(is_subaccount_valid(args.spender.subaccount)!== true){
+            return {
+                err:
+                {
+                    GenericError:{
+                        error_code:0n,
+                        message: 'spender.subaccoutn must be 32 bytes in length'
                     }
-                })
+                }
             }
-        })
+        }
+
+
+        if(is_subaccount_valid(from.subaccount)!== true){
+            return {
+                err:
+                {
+                    GenericError:{
+                        error_code:0n,
+                        message: 'from.subaccount must be 32 bytes in length'
+                    }
+                }
+            }
+        }
+
+
+
+
+    
+
+        if (isExpectedAllowance(args.expected_allowance,oldAllowance.allowance) !== true) {
+            return {
+                err:
+                { 
+                    AllowanceChanged: { current_allowance: oldAllowance.allowance } 
+                
+                }
+                
+            };
+        }
+
+
+
+        if(isValidFee(args.fee) !== true){
+            return {
+                err:
+                {
+                    //@ts-ignore
+                    BadFee:{expected_fee: currentFee}
+                }
+            }
+        }
+
+        //@ts-ignore
+        currentFee = args.fee.Some ?? currentFee;
+
+
+        if(isExpired(args.expires_at)){
+            return{
+                err:
+                {
+                    Expired:{ledger_time:currentLedgerTime}
+                }
+            }
+        }
+
+        //@ts-ignore
+        if(is_created_at_time_in_future(currentLedgerTime,finalCreateTime,permitted_drift_nanos)){
+            return {
+                err:
+                {
+                    CreatedInFuture:{ledger_time:currentLedgerTime}
+                }
+            }  
+        }
+
+
+        //@ts-ignore
+        if(is_created_at_time_too_old(currentLedgerTime,finalCreateTime,transaction_window_nanos,permitted_drift_nanos)){
+            return {
+                err:
+                {
+                    TooOld:null
+                }
+            
+            }
+        
+        }
+
+
+        if((isValidBalance(Caller,currentFee) !== true)){
+            return{
+                err:
+                {
+                    InsufficientFunds:{balance:currentCallerBalance}
+                }
+            }
+        }
+    
+
+        const {owner_key: from_owner_key,subaccount_key: from_subaccount_key} = get_account_keys(Caller)
+        const {owner_key: to_owner_key,subaccount_key: to_subaccount_key} = get_account_keys(Spender)
+
+        const Key:AllowanceKey = {
+            [from_owner_key] : {
+                [from_subaccount_key] :   {
+                    [to_owner_key]:to_subaccount_key
+                }
+            }
+        }
+
+        const insertionData:AllowanceStorageData = {
+            Allowance:{
+                allowance:args.amount,
+                expires_at:args.expires_at
+
+            },
+
+            fee:currentFee,
+
+            memo: args.memo,
+            created_at_time:finalCreateTime
+
+        }
+
+        const newTransaction:Transaction = {
+            args: Opt.Some( args),
+            fee: currentFee,
+            from: Opt.Some(Caller),
+            kind: kind,
+            timestamp: finalCreateTime
+
+        }
+
+        const newSate:State = {
+            ...currentTokenState,
+            //@ts-ignore
+            transactions: [...currentTokenState.transactions,newTransaction]
+        }
+
+    
+
+        const newCallerBalance = currentCallerBalance - currentFee
+
+        TokenState.insert(1n,newSate)
+
+        AllowanceStorage.insert(Key,insertionData)
+
+        AccountBalance.insert(Caller,newCallerBalance)
+        
+
+        if(currentTokenState.minting_account.Some){
+            const mintingAccountBalance = icrc1_balance_of(currentTokenState.minting_account.Some)
+            AccountBalance.insert(currentTokenState.minting_account.Some,mintingAccountBalance + currentFee)
+        }
 
 
         return{

@@ -1,6 +1,7 @@
 import { Subaccount,Account,OwnerKey,SubaccountKey, TransferError,ApproveError } from "./types";
 import { Opt,blob,nat32,nat64,ic,nat,match,Result,Principal } from "azle";
-import { TokenState } from "./storage/storage";
+import { TokenState,AccountBalance } from "./storage/storage";
+import { icrc1_balance_of } from "./queryFunctions/queryFunctions";
 
 
 
@@ -78,19 +79,19 @@ export function is_created_at_time_too_old(currentTime:nat,created_at_time: nat6
 }
 
 
-export function isValidFee(userFee:Opt<nat>): boolean | ApproveError | TransferError {
+export function isValidFee(userFee:Opt<nat>): boolean{
     return match(TokenState.get(1n),{
         Some:(arg)=>{
 
              if(userFee.Some && userFee.Some < arg.fee){
-                return ({BadFee: {expected_fee:arg.fee}})
+                return false
              }
 
              return true
 
         },
         None:() => {
-            return({TemporarilyUnavailable:null})
+            return false
         }
     })
 }
@@ -144,6 +145,20 @@ export function is_minting_account(owner: Principal): boolean | TransferError | 
 
 export function is_anonymous(principal: Principal): boolean {
     return principal.toText() === '2vxsx-fae';
+}
+
+export function isValidBalance(userAccount:Account,fee:nat):boolean{
+
+    const currentBalance = icrc1_balance_of(userAccount)
+
+    if(currentBalance< fee){
+        return false
+    }
+
+    return true
+
+
+
 }
 
 
