@@ -1,7 +1,7 @@
 import { $query,ic,match,Result,nat, blob,Opt } from "azle";
 import { AllowanceStorage,TokenState } from "../storage/storage";
 import { ApproveArgs,Account,ApproveError,State,AllowanceKey,Allowance,AllowanceStorageData,TransactionKind,Transaction } from "../types";
-import { icrc2_allowance } from "../queryFunctions/queryFunctions";
+import { icrc2_allowance } from "../query/queryFunctions";
 import { is_created_at_time_in_future,is_created_at_time_too_old,get_account_keys, isValidFee, isExpired,isExpectedAllowance,isValidBalance } from "../helper";
 
 import { validate_approve } from "../validations";

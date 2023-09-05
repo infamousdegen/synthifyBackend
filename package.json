@@ -9,7 +9,7 @@
   "dependencies": {
     "@dfinity/agent": "^0.15.6",
     "@dfinity/candid": "^0.15.6",
-    "azle": "^0.16.2",
+    "azle": "^0.16.3",
     "decode-utf8": "^1.0.1",
     "uuid": "^9.0.0"
   },

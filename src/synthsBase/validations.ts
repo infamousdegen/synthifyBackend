@@ -13,11 +13,12 @@ import {
     State,
     Transaction,
     AllowanceKey,
-    AllowanceStorageData
+    AllowanceStorageData,
+
 
 } from './types';
 
-import { icrc1_balance_of,icrc2_allowance } from './queryFunctions/queryFunctions';
+import { icrc1_balance_of,icrc2_allowance } from './query/queryFunctions';
 import { TokenState,AllowanceStorage,AccountBalance } from './storage/storage';
 
 import { get_account_keys } from './helper';
@@ -29,6 +30,124 @@ import { is_subaccount_valid,
     is_minting_account,is_anonymous,isExpectedAllowance,isExpired,isValidBalance } from './helper';
 
 
+//@todo: is memo valid
+//@todo: Check for to minting account and from minting account
+//@todo: while burning make sure the burned has enough amount
+export function validate_transfer(
+    args:TransferArgs,
+    from:Account,
+    currentTokenState:State,
+    currentLedgerTime:nat
+):ValidateTransferResult{
+
+    const Caller: Account = from
+
+    const Spender:Account = args.to;
+
+    const finalCreateTime = args.created_at_time.Some ? args.created_at_time.Some : currentLedgerTime
+
+    const permitted_drift_nanos:nat = currentTokenState.permitted_drift_nanos
+
+    const  transaction_window_nanos:nat = currentTokenState.transaction_window_nanos
+
+    let currentFee:nat = currentTokenState.fee;
+
+    const currentCallerBalance = icrc1_balance_of(Caller)
+
+    if(is_subaccount_valid(args.to.subaccount)!== true){
+        return {
+            err:
+            {
+                GenericError:{
+                    error_code:0n,
+                    message: 'to.subaccount must be 32 bytes in length'
+                }
+            }
+        }
+    }
+
+    if(is_subaccount_valid(from.subaccount)!== true){
+        return {
+            err:
+            {
+                GenericError:{
+                    error_code:0n,
+                    message: 'from.subaccount must be 32 bytes in length'
+                }
+            }
+        }
+    }
+
+            
+            if(is_created_at_time_in_future(currentLedgerTime,finalCreateTime,permitted_drift_nanos)){
+                return {
+                    err:
+                    {
+                        CreatedInFuture:{ledger_time:currentLedgerTime}
+                    }
+                }  
+            }
+    
+    
+            
+            if(is_created_at_time_too_old(currentLedgerTime,finalCreateTime,transaction_window_nanos,permitted_drift_nanos)){
+                return {
+                    err:
+                    {
+                        TooOld:null
+                    }
+                
+                }
+            
+            }
+
+
+            if(isValidFee(args.fee) !== true){
+                return {
+                    err:
+                    {
+                        
+                        BadFee:{expected_fee: currentFee}
+                    }
+                }
+            }
+    
+            
+            currentFee = args.fee.Some ?? currentFee;
+
+
+        if(is_minting_account(args.to.owner) === true){
+            
+        if (args.amount < currentFee) {
+            return {
+                err: {
+                    BadBurn: {
+                        min_burn_amount: currentFee
+                    }
+                }
+            };
+        }
+    }
+
+            if((isValidBalance(Caller,currentFee) !== true)){
+                return{
+                    err:
+                    {
+                        InsufficientFunds:{balance:currentCallerBalance}
+                    }
+                }
+            }
+
+ 
+
+
+
+
+    return {
+        ok: true
+    };
+
+}
 
 //@todo: Do something for duplicate transaction
 export function validate_approve(    
@@ -51,9 +170,9 @@ export function validate_approve(
 
         let currentFee:nat = currentTokenState.fee;
     
-        let permitted_drift_nanos:nat = currentTokenState.permitted_drift_nanos
+        const permitted_drift_nanos:nat = currentTokenState.permitted_drift_nanos
     
-        let  transaction_window_nanos:nat = currentTokenState.transaction_window_nanos
+        const  transaction_window_nanos:nat = currentTokenState.transaction_window_nanos
         
     
         const finalCreateTime = args.created_at_time.Some ? args.created_at_time.Some : currentLedgerTime
@@ -112,13 +231,13 @@ export function validate_approve(
             return {
                 err:
                 {
-                    //@ts-ignore
+                    
                     BadFee:{expected_fee: currentFee}
                 }
             }
         }
 
-        //@ts-ignore
+        
         currentFee = args.fee.Some ?? currentFee;
 
 
@@ -131,7 +250,7 @@ export function validate_approve(
             }
         }
 
-        //@ts-ignore
+
         if(is_created_at_time_in_future(currentLedgerTime,finalCreateTime,permitted_drift_nanos)){
             return {
                 err:
@@ -142,7 +261,6 @@ export function validate_approve(
         }
 
 
-        //@ts-ignore
         if(is_created_at_time_too_old(currentLedgerTime,finalCreateTime,transaction_window_nanos,permitted_drift_nanos)){
             return {
                 err:
@@ -201,7 +319,7 @@ export function validate_approve(
 
         const newSate:State = {
             ...currentTokenState,
-            //@ts-ignore
+
             transactions: [...currentTokenState.transactions,newTransaction]
         }
 

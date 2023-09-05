@@ -1,7 +1,7 @@
 import { Subaccount,Account,OwnerKey,SubaccountKey, TransferError,ApproveError } from "./types";
 import { Opt,blob,nat32,nat64,ic,nat,match,Result,Principal } from "azle";
 import { TokenState,AccountBalance } from "./storage/storage";
-import { icrc1_balance_of } from "./queryFunctions/queryFunctions";
+import { icrc1_balance_of } from "./query/queryFunctions";
 
 
 
@@ -125,7 +125,7 @@ export function isExpectedAllowance(expected_allowance:Opt<nat>,currentAllowance
 
 
 //@todo: fix this 
-export function is_minting_account(owner: Principal): boolean | TransferError | ApproveError {
+export function is_minting_account(owner: Principal): boolean {
 
     return match(TokenState.get(1n),{
         Some:(arg)=>{
@@ -138,7 +138,7 @@ export function is_minting_account(owner: Principal): boolean | TransferError | 
 
         },
         None:() => {
-            return({TemporarilyUnavailable:null})
+            return(false)
         }
     })
 }
