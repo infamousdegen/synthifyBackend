@@ -14,6 +14,7 @@ import { is_minting_account } from '../helper';
 
 import { handle_mint } from '../transfers/mint';
 import { handle_burn } from '../transfers/burn';
+import { handle_transfer } from '../transfers/transfer';
 
 export function icrc1_transfer(args: TransferArgs): Result<nat,TransferError> {
     const from: Account = {
