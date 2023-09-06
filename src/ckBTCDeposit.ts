@@ -10,7 +10,7 @@ import {
     $update,
     Variant
 } from 'azle';
-import {ICRC,ICRC1TransferError} from 'azle/canisters/icrc'
+import {ICRC,ICRCTransferError} from 'azle/canisters/icrc'
 
 
 
@@ -81,7 +81,7 @@ $update;
 export async function transfer(
     to: string,
     amount: nat
-): Promise<Variant<{ Ok: nat; Err: ICRC1TransferError }>> {
+): Promise<Variant<{ Ok: nat; Err: ICRCTransferError }>> {
     const result = await ckBTC
         .icrc1_transfer({
             from_subaccount: Opt.Some(
