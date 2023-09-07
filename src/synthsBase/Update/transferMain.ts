@@ -5,9 +5,12 @@ import {
     Account,
     TransferArgs,
     TransferError,
-    State
+    State,
+    TransferFromArgs,
+    TransferFromError,
+    Allowance
 } from '../types';
-import { validate_transfer } from '../validations';
+import { validate_transfer, validate_transfer_from } from '../validations';
 import { TokenState } from '../storage/storage';
 
 import { is_minting_account } from '../helper';
@@ -15,6 +18,7 @@ import { is_minting_account } from '../helper';
 import { handle_mint } from '../transfers/mint';
 import { handle_burn } from '../transfers/burn';
 import { handle_transfer } from '../transfers/transfer';
+import { icrc2_allowance } from '../query/queryFunctions';
 
 export function icrc1_transfer(args: TransferArgs): Result<nat,TransferError> {
     const from: Account = {
@@ -58,4 +62,55 @@ export function icrc1_transfer(args: TransferArgs): Result<nat,TransferError> {
     }
 
     return handle_transfer(args, from);
+}
+
+//@todo: Check if the created at time and expires at is correct 
+
+export function icrc2_transfer_from(args:TransferFromArgs): Result<nat,TransferFromError>{
+    const Caller:Account = {
+        owner: ic.caller(),
+        subaccount:args.spender_subaccount
+
+    }
+
+
+
+    
+
+    
+
+
+    let currentTokenState:State;
+    let currentLedgerTime = ic.time()
+
+
+    match(TokenState.get(1n),{
+        Some:(arg)=>{
+            currentTokenState = arg
+            
+        },
+        None:() => {
+            return({TemporarilyUnavailable:null})
+        }
+    })
+
+    //@ts-ignore
+    const validate_transferFrom_result = validate_transfer_from(args,Caller,currentTokenState,currentLedgerTime)
+
+    if(validate_transferFrom_result.err){
+        return {
+            Err:validate_transferFrom_result.err
+        }
+    }
+
+    
+    // if (to_is_minting_account === true) {
+    //     return handle_burn(args, from);
+    // }
+
+    return(Result.Ok<nat,TransferFromError>(args.amount))
+
+
+
+
 }

@@ -76,7 +76,7 @@ export type SupportedStandard = {
 };
 
 export type Transaction = {
-    args: Opt<TransferArgs> | Opt<ApproveArgs>;
+    args: Opt<TransferArgs> | Opt<ApproveArgs> | Opt<TransferFromArgs>;
     fee: nat;
     from: Opt<Account>;
     kind: TransactionKind;
@@ -150,6 +150,7 @@ export type Allowance =  {
     
   }
 
+  //@todo: Fee not needed in allowance storage data 
 export type AllowanceStorageData = {
     Allowance: Allowance
     fee: nat
@@ -182,6 +183,11 @@ export type TransferResult = Variant<{
     Err: TransferError;
 }>;
 
+export type TransferFromResult = Variant<{
+    Ok:nat;
+    Err:TransferFromError
+}>
+
 export type ValidateTransferResult = Variant<{
     ok: boolean;
     err: TransferError;
@@ -190,5 +196,10 @@ export type ValidateTransferResult = Variant<{
 export type ValidateApproveResult = Variant<{
     ok:boolean;
     err:ApproveError;
+}>
+
+export type ValidateTransferFromResult = Variant<{
+    ok:boolean;
+    err:TransferFromError
 }>
 
