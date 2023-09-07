@@ -17,6 +17,15 @@
       "ts": "src/ckBTCDeposit.ts",
       "candid": "src/ckbtc.did",
       "wasm": ".azle/ckbtc/ckbtc.wasm.gz"
+    },
+    "synbase":{
+      "main":"src/synthsBase/index.ts",
+      "type":"custom",
+      "build": "npx azle synbase",
+      "root":"src/synthsBase",
+      "ts":"src/synthsBase/index.ts",
+      "candid":"src/synthsBase/synbase.did",
+      "wasm":".azle/synbase/synbase.wasm.gz"
     }
   }
 }

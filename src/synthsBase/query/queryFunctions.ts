@@ -1,6 +1,8 @@
 import { AccountBalance,TokenState,AllowanceStorage } from "../storage/storage";
-import { $query,match,nat,Result,Opt } from "azle";
-import { Account, Metadatum,SupportedStandard,AllowanceArgs,AllowanceKey, Allowance } from "../types";
+import { $query,match,nat,Result,Opt,Variant,blob,int,Vec } from "azle";
+import { Account,Metadatum,SupportedStandard,AllowanceArgs,AllowanceKey, Allowance } from "../types";
+
+
 import { get_account_keys } from "../helper";
 $query;
 export function icrc1_name():Result<string,string> {
@@ -37,13 +39,14 @@ export function icrc1_decimals(): Result<nat,string>{
 
 
 $query;
-export function icrc1_metadata() : Result<Metadatum[],string>{
+export function icrc1_metadata() : Result<Vec<Metadatum>,string>{
+
     return(match(TokenState.get(1n),{
         Some: (arg) =>{
-            return Result.Ok<Metadatum[],string>(arg.metadata)
+            return Result.Ok<Vec<Metadatum>,string>(arg.metadata)
         },
         //@note: None condition should be technically imporssinly 
-        None: () =>  Result.Err<Metadatum[],string>("Some Error Occured")
+        None: () =>  Result.Err<Vec<Metadatum>,string>("Some Error Occured")
     }))
 }
 
@@ -81,13 +84,13 @@ export function icrc1_balance_of(Account:Account): nat{
 }
 
 $query;
-export function icrc1_supported_standards(): Result<SupportedStandard[],string>{
+export function icrc1_supported_standards(): Result<Vec<SupportedStandard>,string>{
     return(match(TokenState.get(1n),{
         Some: (arg) =>{
-            return Result.Ok<SupportedStandard[],string>(arg.supported_standards)
+            return Result.Ok<Vec<SupportedStandard>,string>(arg.supported_standards)
         },
         //@note: None condition should be technically imporssinly 
-        None: () =>  Result.Err<SupportedStandard[],string>("Error Occured")
+        None: () =>  Result.Err<Vec<SupportedStandard>,string>("Error Occured")
     }))
 }
 

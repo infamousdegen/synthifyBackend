@@ -1,4 +1,4 @@
-import { $query,ic,match,Result,nat, blob,Opt } from "azle";
+import { $query,ic,match,Result,nat, blob,Opt, $update } from "azle";
 import { AllowanceStorage,TokenState } from "../storage/storage";
 import { ApproveArgs,Account,ApproveError,State,AllowanceKey,Allowance,AllowanceStorageData,TransactionKind,Transaction } from "../types";
 import { icrc2_allowance } from "../query/queryFunctions";
@@ -13,7 +13,7 @@ import { validate_approve } from "../validations";
 //@duplicate: I should check on how to give out duplicate 
 
 
-$query;
+$update;
 export function icrc2_approve(approve_args:ApproveArgs):Result<nat,ApproveError> {
 
     const kind: TransactionKind = {

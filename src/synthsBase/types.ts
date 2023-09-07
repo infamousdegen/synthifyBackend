@@ -1,42 +1,41 @@
-import { NullClass } from '@dfinity/candid/lib/cjs/idl';
-import { blob, int, nat, nat8, nat64, Opt, Principal, Variant } from 'azle';
+import { blob, int, nat, nat8, nat64, Opt, Principal, Variant,Record,Vec } from 'azle';
 
 export type Subaccount = blob;
 
 export type SubaccountKey = string;
 export type OwnerKey = string;
 
-export type Account = {
+export type Account = Record<{
     owner: Principal;
     subaccount: Opt<Subaccount>;
-};
+}>;
 
-export type AllowanceKey = {
+export type AllowanceKey = Record<{
     [FromPrimary: OwnerKey]: {
       [FromSubAccount: SubaccountKey]: {
         [ToPrimary: OwnerKey]:SubaccountKey
         
       }  
     };
-  };
+  }>;
 
 export type CurrencyKey  = blob;
 
 
-export  type InitArgs = {
+export  type InitArgs = Record<{
     decimal:nat,
     fee: nat;
-    metadata: Metadatum[];
+    metadata: Vec<Metadatum>;
     minting_account: Opt<Account>;
     primary_account: Opt<Account>;
     name: string;
     permitted_drift_nanos: nat64;
-    supported_standards: SupportedStandard[];
+    supported_standards: Vec<SupportedStandard>;
     symbol: string;
     total_supply:nat
     transaction_window_nanos: nat64;
     currencyKey: CurrencyKey
-};
+}>;
 
 export type Value = Variant<{
     Blob: blob;
@@ -51,22 +50,22 @@ export type Metadatum = [string, Value];
 
 
 
-export type State = {
+export type State = Record<{
 
     decimals: nat;
     fee: nat;
-    metadata: Metadatum[];
+    metadata: Vec<Metadatum>;
     minting_account: Opt<Account>;
     primary_account: Opt<Account>;
     name: string;
     permitted_drift_nanos: nat64;
-    supported_standards: SupportedStandard[];
+    supported_standards: Vec<SupportedStandard>;
     symbol: string;
     total_supply: nat;
-    transactions: Transaction[];
+    transactions: Vec<Transaction>;
     transaction_window_nanos: nat64;
     currencyKey:CurrencyKey
-};
+}>;
 
 
 
@@ -103,30 +102,31 @@ export type ApproveArgs = {
     created_at_time:Opt<nat>
 }
 
+
 export type ApproveError = Variant<{
-    BadFee: {expected_fee:nat}
-    InsufficientFunds: {balance:nat}
-    AllowanceChanged: {current_allowance : nat}
-    Expired: {ledger_time : nat64}
+    BadFee: Record<{expected_fee:nat}>
+    InsufficientFunds: Record<{balance:nat}>
+    AllowanceChanged: Record<{current_allowance : nat}>
+    Expired: Record<{ledger_time : nat64}>
     TooOld: null
-    CreatedInFuture: {ledger_time : nat64}
-    Duplicate: {duplicate_of : nat}
+    CreatedInFuture: Record<{ledger_time : nat64}>
+    Duplicate: Record<{duplicate_of : nat}>
     TemporarilyUnavailable: null
-    GenericError: {error_code:nat; message:string}
+    GenericError: Record<{error_code:nat; message:string}>
 }>
 
 export type TransferFromError = Variant<{
-    BadFee :  { expected_fee : nat };
-    BadBurn :  { min_burn_amount : nat };
+    BadFee :  Record<{ expected_fee : nat }>;
+    BadBurn :  Record<{ min_burn_amount : nat }>;
     // The [from] account does not hold enough funds for the transfer.
-    InsufficientFunds :  { balance : nat };
+    InsufficientFunds :  Record<{ balance : nat }>;
     // The caller exceeded its allowance.
-    InsufficientAllowance :  { allowance : nat };
+    InsufficientAllowance :  Record<{ allowance : nat }>;
     TooOld: null;
-    CreatedInFuture:  { ledger_time : nat64 };
-    Duplicate :  { duplicate_of : nat };
+    CreatedInFuture:  Record<{ ledger_time : nat64 }>;
+    Duplicate :  Record<{ duplicate_of : nat }>;
     TemporarilyUnavailable:null;
-    GenericError :  { error_code : nat; message : string };
+    GenericError :  Record<{ error_code : nat; message : string }>;
 }>
 
 export type TransferFromArgs =  {
@@ -151,12 +151,12 @@ export type Allowance =  {
   }
 
   //@todo: Fee not needed in allowance storage data 
-export type AllowanceStorageData = {
+export type AllowanceStorageData = Record<{
     Allowance: Allowance
     fee: nat
     created_at_time: nat
     memo:Opt<blob>
-}
+}>
 
 export type TransferArgs = {
     amount: nat;
@@ -168,12 +168,12 @@ export type TransferArgs = {
 };
 
 export type TransferError = Variant<{
-    BadBurn: { min_burn_amount: nat };
-    BadFee: { expected_fee: nat };
-    CreatedInFuture: { ledger_time: nat64 };
-    Duplicate: { duplicate_of: nat };
-    GenericError: { error_code: nat; message: string };
-    InsufficientFunds: { balance: nat };
+    BadBurn: Record<{ min_burn_amount: nat }>;
+    BadFee: Record<{ expected_fee: nat }>;
+    CreatedInFuture: Record<{ ledger_time: nat64 }>;
+    Duplicate: Record<{ duplicate_of: nat }>;
+    GenericError: Record<{ error_code: nat; message: string }>;
+    InsufficientFunds: Record<{ balance: nat }>;
     TemporarilyUnavailable: null;
     TooOld: null;
 }>;

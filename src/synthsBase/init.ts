@@ -26,7 +26,7 @@ import { TokenState } from './storage/storage';
 
 
 
-$init;
+$update;
 export async function constructor(Init:InitArgs) {
     const State:State = {
         decimals : Init.decimal,

@@ -1,4 +1,4 @@
-import { ic, nat, Result,match,Opt } from 'azle';
+import { ic, nat, Result,match,Opt, $update } from 'azle';
 
 
 import {
@@ -19,6 +19,8 @@ import { handle_mint } from '../transfers/mint';
 import { handle_burn } from '../transfers/burn';
 import { handle_transfer } from '../transfers/transfer';
 import { icrc2_allowance } from '../query/queryFunctions';
+
+$update
 
 export function icrc1_transfer(args: TransferArgs): Result<nat,TransferError> {
     const from: Account = {
@@ -65,7 +67,10 @@ export function icrc1_transfer(args: TransferArgs): Result<nat,TransferError> {
 }
 
 //@todo: Check if the created at time and expires at is correct 
+//@todo: Burn if to amount is the minting account 
 
+
+$update;
 export function icrc2_transfer_from(args:TransferFromArgs): Result<nat,TransferFromError>{
     const Caller:Account = {
         owner: ic.caller(),
@@ -107,6 +112,9 @@ export function icrc2_transfer_from(args:TransferFromArgs): Result<nat,TransferF
     // if (to_is_minting_account === true) {
     //     return handle_burn(args, from);
     // }
+
+
+
 
     return(Result.Ok<nat,TransferFromError>(args.amount))
 

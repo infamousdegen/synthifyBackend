@@ -10,7 +10,7 @@ import {
 import { icrc1_balance_of } from '../query/queryFunctions';
 import { AccountBalance, TokenState } from '../storage/storage';
 
-export function handle_burn(args: TransferArgs, from: Account): TransferResult {
+export function handle_burn(args: TransferArgs , from: Account): TransferResult {
 
 
     let currentTokenState:State;
