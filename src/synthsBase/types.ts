@@ -83,7 +83,11 @@ export type SupportedStandard = Record<{
 }>;
 
 export type Transaction = Record<{
-    args: Opt<TransferArgs> | Opt<ApproveArgs> | Opt<TransferFromArgs>;
+    args: Variant<{
+        TransferArgs:TransferArgs,  
+        ApproveArgs:ApproveArgs,
+        TransferFromArgs:TransferFromArgs
+    }>;
     fee: nat;
     from: Opt<Account>;
     kind: TransactionKind;
@@ -99,7 +103,7 @@ export type TransactionKind = Variant<{
 
 }>;
 
-export type ApproveArgs = {
+export type ApproveArgs = Record<{
     from_subaccount: Opt<Subaccount>;
     spender: Account
     amount:nat
@@ -108,7 +112,7 @@ export type ApproveArgs = {
     fee:Opt<nat>
     memo: Opt<blob>
     created_at_time:Opt<nat>
-}
+}>
 
 
 export type ApproveError = Variant<{
@@ -137,7 +141,7 @@ export type TransferFromError = Variant<{
     GenericError :  Record<{ error_code : nat; message : string }>;
 }>
 
-export type TransferFromArgs =  {
+export type TransferFromArgs =  Record<{
     spender_subaccount :  Opt<blob>;
     from : Account;
     to : Account;
@@ -145,18 +149,18 @@ export type TransferFromArgs =  {
     fee :  Opt<nat>;
     memo :  Opt<blob>;
     created_at_time : Opt <nat64>;
-};
+}>;
 
 export type AllowanceArgs =  Record<{
     account : Account;
     spender : Account;
 }>;
 
-export type Allowance =  {
+export type Allowance =  Record<{
     allowance : nat;
     expires_at : Opt< nat64>;
     
-  }
+  }>
 
   //@todo: Fee not needed in allowance storage data 
 export type AllowanceStorageData = Record<{
@@ -166,14 +170,14 @@ export type AllowanceStorageData = Record<{
     memo:Opt<blob>
 }>
 
-export type TransferArgs = {
+export type TransferArgs = Record<{
     amount: nat;
     created_at_time: Opt<nat64>;
     fee: Opt<nat>;
     from_subaccount: Opt<Subaccount>;
     memo: Opt<blob>;
     to: Account;
-};
+}>;
 
 export type TransferError = Variant<{
     BadBurn: Record<{ min_burn_amount: nat }>;
