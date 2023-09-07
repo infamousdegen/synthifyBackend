@@ -1,5 +1,5 @@
 import { AccountBalance,TokenState,AllowanceStorage } from "../storage/storage";
-import { $query,match,nat,Result,Opt,Variant,blob,int,Vec } from "azle";
+import { $query,match,nat,Result,Opt,Variant,blob,int,Vec, Tuple } from "azle";
 import { Account,Metadatum,SupportedStandard,AllowanceArgs,AllowanceKey, Allowance } from "../types";
 
 
@@ -39,14 +39,15 @@ export function icrc1_decimals(): Result<nat,string>{
 
 
 $query;
-export function icrc1_metadata() : Result<Vec<Metadatum>,string>{
+export function icrc1_metadata() : Result<Metadatum,string>{
 
     return(match(TokenState.get(1n),{
         Some: (arg) =>{
-            return Result.Ok<Vec<Metadatum>,string>(arg.metadata)
+            
+            return Result.Ok<Metadatum,string>(arg.metadata)
         },
         //@note: None condition should be technically imporssinly 
-        None: () =>  Result.Err<Vec<Metadatum>,string>("Some Error Occured")
+        None: () =>  Result.Err<Metadatum,string>("Some Error Occured")
     }))
 }
 
@@ -98,6 +99,8 @@ $query;
 export function icrc2_allowance(allowance_args:AllowanceArgs):Allowance{
    const {owner_key: from_owner_key,subaccount_key: from_subaccount_key} = get_account_keys(allowance_args.account)
    const {owner_key: to_owner_key,subaccount_key: to_subaccount_key} = get_account_keys(allowance_args.spender)
+
+
    const Key:AllowanceKey = {
     [from_owner_key] : {
         [from_subaccount_key] :   {

@@ -1,25 +1,33 @@
-import { blob, int, nat, nat8, nat64, Opt, Principal, Variant,Record,Vec } from 'azle';
+import { blob, int, nat, nat8, nat64, Opt, Principal, Variant,Record,Vec, Tuple,Alias } from 'azle';
 
-export type Subaccount = blob;
+export type Subaccount = Alias<blob>;
 
-export type SubaccountKey = string;
-export type OwnerKey = string;
+export type SubaccountKey = Alias<string>;
+export type OwnerKey = Alias<string>;
 
 export type Account = Record<{
     owner: Principal;
     subaccount: Opt<Subaccount>;
 }>;
 
-export type AllowanceKey = Record<{
-    [FromPrimary: OwnerKey]: {
-      [FromSubAccount: SubaccountKey]: {
-        [ToPrimary: OwnerKey]:SubaccountKey
+// export type AllowanceKey = Record<{
+//     [FromPrimary: OwnerKey]: {
+//       [FromSubAccount: SubaccountKey]: {
+//         [ToPrimary: OwnerKey]:SubaccountKey
         
-      }  
-    };
-  }>;
+//       }  
+//     };
+//   }>;
 
-export type CurrencyKey  = blob;
+export type AllowanceKey = Record <{
+    From: Record <{
+        To:Account
+    }>
+
+}>
+
+
+export type CurrencyKey  = Alias<blob>;
 
 
 export  type InitArgs = Record<{
@@ -46,7 +54,7 @@ export type Value = Variant<{
 
 
 
-export type Metadatum = [string, Value];
+export type Metadatum = Alias<Vec<Tuple<[string, Value]>>>;
 
 
 
@@ -54,7 +62,7 @@ export type State = Record<{
 
     decimals: nat;
     fee: nat;
-    metadata: Vec<Metadatum>;
+    metadata: Metadatum;
     minting_account: Opt<Account>;
     primary_account: Opt<Account>;
     name: string;
@@ -69,18 +77,18 @@ export type State = Record<{
 
 
 
-export type SupportedStandard = {
+export type SupportedStandard = Record<{
     name: string;
     url: string;
-};
+}>;
 
-export type Transaction = {
+export type Transaction = Record<{
     args: Opt<TransferArgs> | Opt<ApproveArgs> | Opt<TransferFromArgs>;
     fee: nat;
     from: Opt<Account>;
     kind: TransactionKind;
     timestamp: nat64;
-};
+}>;
 
 export type TransactionKind = Variant<{
     Burn: null;
@@ -139,10 +147,10 @@ export type TransferFromArgs =  {
     created_at_time : Opt <nat64>;
 };
 
-export type AllowanceArgs =  {
+export type AllowanceArgs =  Record<{
     account : Account;
     spender : Account;
-};
+}>;
 
 export type Allowance =  {
     allowance : nat;
