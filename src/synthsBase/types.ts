@@ -63,18 +63,18 @@ export type Metadatum = Alias<Vec<Tuple<[string, Value]>>>;
 export type State = Record<{
 
     decimals: nat;
-    fee: nat;
-    metadata: Metadatum;
-    minting_account: Opt<Account>;
-    primary_account: Opt<Account>;
-    name: string;
-    permitted_drift_nanos: nat64;
-    supported_standards: Vec<SupportedStandard>;
-    symbol: string;
-    total_supply: nat;
-    transactions: Vec<Transaction>;
-    transaction_window_nanos: nat64;
-    currencyKey:CurrencyKey
+    // fee: nat;
+    // // metadata: Metadatum;
+    // minting_account: Opt<Account>;
+    // primary_account: Opt<Account>;
+    // name: string;
+    // permitted_drift_nanos: nat64;
+    // // supported_standards: Vec<SupportedStandard>;
+    // symbol: string;
+    // total_supply: nat;
+    // // transactions: Vec<Transaction>;
+    // transaction_window_nanos: nat64;
+    // currencyKey:CurrencyKey
 }>;
 
 

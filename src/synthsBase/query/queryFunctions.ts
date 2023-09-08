@@ -1,8 +1,27 @@
 import { AccountBalance,TokenState,AllowanceStorage } from "../storage/storage";
-import { $query,match,nat,Result,Opt,Variant,blob,int,Vec, Tuple } from "azle";
-import { Account,Metadatum,SupportedStandard,AllowanceArgs,AllowanceKey, Allowance } from "../types";
+import { $query,match,nat,Result,Opt,$update,blob,int,Vec, Tuple } from "azle";
+import { Account,Metadatum,SupportedStandard,AllowanceArgs,AllowanceKey, Allowance, State } from "../types";
 
 import { padSubAccount } from "../helper";
+
+$update;
+export function updateTokenState():string{
+    const state:State = {
+        decimals: 8n,
+        // fee: 0n,
+        // minting_account: Opt.None,
+        // primary_account: Opt.None,
+        // name: "Token",
+        // permitted_drift_nanos: 0n,
+        // symbol: "symbl",
+        // total_supply:0n,
+        // transaction_window_nanos:0n
+
+    }
+
+    TokenState.insert(1n,state)
+    return("Done")
+}
 $query;
 export function icrc1_name():Result<string,string> {
     return(match(TokenState.get(1n),{
@@ -37,18 +56,18 @@ export function icrc1_decimals(): Result<nat,string>{
 }
 
 
-$query;
-export function icrc1_metadata() : Result<Metadatum,string>{
+// $query;
+// export function icrc1_metadata() : Result<Metadatum,string>{
 
-    return(match(TokenState.get(1n),{
-        Some: (arg) =>{
+//     return(match(TokenState.get(1n),{
+//         Some: (arg) =>{
             
-            return Result.Ok<Metadatum,string>(arg.metadata)
-        },
-        //@note: None condition should be technically imporssinly 
-        None: () =>  Result.Err<Metadatum,string>("Some Error Occured")
-    }))
-}
+//             return Result.Ok<Metadatum,string>(arg.metadata)
+//         },
+//         //@note: None condition should be technically imporssinly 
+//         None: () =>  Result.Err<Metadatum,string>("Some Error Occured")
+//     }))
+// }
 
 $query;
 export function icrc1_total_supply(): Result<nat,string>{
@@ -85,16 +104,16 @@ export function icrc1_balance_of(Account:Account): nat{
     }))
 }
 
-$query;
-export function icrc1_supported_standards(): Result<Vec<SupportedStandard>,string>{
-    return(match(TokenState.get(1n),{
-        Some: (arg) =>{
-            return Result.Ok<Vec<SupportedStandard>,string>(arg.supported_standards)
-        },
-        //@note: None condition should be technically imporssinly 
-        None: () =>  Result.Err<Vec<SupportedStandard>,string>("Error Occured")
-    }))
-}
+// $query;
+// export function icrc1_supported_standards(): Result<Vec<SupportedStandard>,string>{
+//     return(match(TokenState.get(1n),{
+//         Some: (arg) =>{
+//             return Result.Ok<Vec<SupportedStandard>,string>(arg.supported_standards)
+//         },
+//         //@note: None condition should be technically imporssinly 
+//         None: () =>  Result.Err<Vec<SupportedStandard>,string>("Error Occured")
+//     }))
+// }
 
 $query;
 export function icrc2_allowance(allowance_args:AllowanceArgs):Allowance{
