@@ -27,7 +27,7 @@ import { TokenState } from './storage/storage';
 
 
 $update;
-export async function constructor(Init:InitArgs) {
+export  function constructor(Init:InitArgs):string {
     const State:State = {
         decimals : Init.decimal,
         fee: Init.fee,
@@ -59,6 +59,8 @@ export async function constructor(Init:InitArgs) {
             ...Init.supported_standards
         ],
         symbol: Init.symbol,
+
+        
         transaction_window_nanos: Init.transaction_window_nanos,
         //not specified in spec but it is for my project
         currencyKey: Init.currencyKey,
@@ -66,5 +68,48 @@ export async function constructor(Init:InitArgs) {
         transactions: [],
     }
     TokenState.insert(1n,State)
+
+    return ("Done")
 }
 
+
+$update;
+export function testinConstructor():string{
+    const state:State = {
+        decimals:8n,
+        fee: 0n,
+        metadata : [
+
+            ['icrc1:decimals', { Nat: 8n }],
+            ['icrc1:fee', { Nat: 0n }],
+            ['icrc1:name', { Text:"Token"}],                                                     
+            ['icrc1:symbol', { Text: "symbol" }],
+            ['custom:currencyKey',{Blob: new Uint8Array()}],
+
+       ],
+
+        supported_standards: [
+            {
+                name: 'ICRC-1',
+                url: 'https://github.com/dfinity/ICRC-1'
+            },
+            {
+                name: 'ICRC-2',
+                url: 'https://github.com/dfinity/ICRC-1/tree/main/standards/ICRC-2'
+            },
+        ],
+        minting_account: Opt.None,
+        primary_account: Opt.None,
+        name: "Token",
+        permitted_drift_nanos: 0n,
+        symbol: "symbol",
+        total_supply:0n,
+        transaction_window_nanos:0n,
+        currencyKey: new Uint8Array(),
+        transactions : []
+
+    }
+
+    TokenState.insert(1n,state)
+    return("Done")
+}

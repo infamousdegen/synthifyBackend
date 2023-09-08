@@ -59,7 +59,7 @@ export async function updateBalance(): Promise<UpdateBalanceResult> {
 }
 
 $update;
-export async function getDepositAddress(): Promise<string> {
+export async function getBtcDepositAddress(): Promise<string> {
     const result = await minter
         .get_btc_address({
             owner: Opt.Some(ic.id()),
@@ -105,6 +105,8 @@ export async function transfer(
         Err: (err) => ic.trap(err)
     });
 }
+
+$update:
 
 function padPrincipalWithZeros(blob: blob): blob {
     let newUin8Array = new Uint8Array(32);
