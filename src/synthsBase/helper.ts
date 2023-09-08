@@ -25,25 +25,22 @@ export function padPrincipalWithZeros(blob: blob): blob {
     return newUin8Array;
 }
 
-export function get_account_keys(account: Account): {
-    owner_key: OwnerKey;
-    subaccount_key: SubaccountKey;
-} {
-    const owner_key: OwnerKey = account.owner.toText();
-    let subaccount_key:SubaccountKey
+ 
 
+export function padSubAccount(account:Account):Account {
+    let paddedAccount:Account
     if(account.subaccount.Some){
         const subAccountArray = padPrincipalWithZeros(account.subaccount.Some)
-        subaccount_key  = subAccountArray.toString()
+        paddedAccount = {...account,subaccount:Opt.Some(subAccountArray)}
     }
     else{
-        const subAccountArray = new Uint8Array(32).fill(0);
-         subaccount_key  = subAccountArray.toString();
+        const subAccountArray = padPrincipalWithZeros(new Uint8Array());
+        paddedAccount = {...account,subaccount:Opt.Some(subAccountArray)}
+
     }
-    return {
-        owner_key,
-        subaccount_key
-    };
+    return (paddedAccount)
+
+
 }
 
 export function is_created_at_time_in_future(currentTime:nat,created_at_time: nat64,permitted_drift_nanos:nat64): boolean {

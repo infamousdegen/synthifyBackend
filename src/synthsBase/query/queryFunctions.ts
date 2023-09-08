@@ -2,8 +2,7 @@ import { AccountBalance,TokenState,AllowanceStorage } from "../storage/storage";
 import { $query,match,nat,Result,Opt,Variant,blob,int,Vec, Tuple } from "azle";
 import { Account,Metadatum,SupportedStandard,AllowanceArgs,AllowanceKey, Allowance } from "../types";
 
-
-import { get_account_keys } from "../helper";
+import { padSubAccount } from "../helper";
 $query;
 export function icrc1_name():Result<string,string> {
     return(match(TokenState.get(1n),{
@@ -75,6 +74,8 @@ export function icrc1_minting_account(): Result<Opt<Account>,string>{
 
 $query
 export function icrc1_balance_of(Account:Account): nat{
+
+    Account = padSubAccount(Account)
     return(match(AccountBalance.get(Account),{
         Some: (arg) =>{
             return (arg)
@@ -97,16 +98,14 @@ export function icrc1_supported_standards(): Result<Vec<SupportedStandard>,strin
 
 $query;
 export function icrc2_allowance(allowance_args:AllowanceArgs):Allowance{
-   const {owner_key: from_owner_key,subaccount_key: from_subaccount_key} = get_account_keys(allowance_args.account)
-   const {owner_key: to_owner_key,subaccount_key: to_subaccount_key} = get_account_keys(allowance_args.spender)
+
+    allowance_args.account = padSubAccount(allowance_args.account)
+    allowance_args.spender = padSubAccount(allowance_args.spender)
 
 
    const Key:AllowanceKey = {
-    [from_owner_key] : {
-        [from_subaccount_key] :   {
-            [to_owner_key]:to_subaccount_key
-        }
-    }
+    from:allowance_args.account,
+    to:allowance_args.spender
    }
    return(match(AllowanceStorage.get(Key),{
     Some:(args) => {

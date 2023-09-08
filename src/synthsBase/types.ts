@@ -19,15 +19,17 @@ export type Account = Record<{
 //     };
 //   }>;
 
-export type AllowanceKey = Record <{
-    From: Record <{
-        To:Account
-    }>
 
+
+
+export type AllowanceKey = Record<{
+    from:Account,
+    to:Account
 }>
-
-
 export type CurrencyKey  = Alias<blob>;
+
+
+
 
 
 export  type InitArgs = Record<{
