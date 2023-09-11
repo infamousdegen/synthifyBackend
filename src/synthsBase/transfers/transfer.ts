@@ -42,7 +42,9 @@ export function handle_transfer(args: TransferArgs, from: Account): TransferResu
 
 
     const newTransaction:Transaction = {
-        args: Opt.Some( args),
+        args: {
+            TransferArgs:args
+        },
         fee: fee,
         from: Opt.Some(from),
         kind: {
@@ -74,7 +76,7 @@ export function handle_transfer(args: TransferArgs, from: Account): TransferResu
     const newTobalance = icrc1_balance_of(args.to)  + args.amount
 
     //@ts-ignore
-    if(currentTokenState.minting_account.Some){
+    if(currentTokenState.minting_account.Some!==undefined){
         //@ts-ignore
         const newMintingAccountBalance = icrc1_balance_of(currentTokenState.minting_account.Some)
         //@ts-ignore
