@@ -2,9 +2,10 @@ import { $query,ic,match,Result,nat, blob,Opt, $update } from "azle";
 import { AllowanceStorage,TokenState } from "../storage/storage";
 import { ApproveArgs,Account,ApproveError,State,AllowanceKey,Allowance,AllowanceStorageData,TransactionKind,Transaction } from "../types";
 import { icrc2_allowance } from "../query/queryFunctions";
-import { is_created_at_time_in_future,is_created_at_time_too_old,get_account_keys, isValidFee, isExpired,isExpectedAllowance,isValidBalance } from "../helper";
+import { is_created_at_time_in_future,is_created_at_time_too_old, isValidFee, isExpired,isExpectedAllowance,isValidBalance } from "../helper";
 
 import { validate_approve } from "../validations";
+import { testingisValidFee } from "../helper";
 //Todo: Use memo
 //@todo: Write test for this 
 
@@ -12,17 +13,15 @@ import { validate_approve } from "../validations";
 //@duplicate: should be form transaction id 
 //@duplicate: I should check on how to give out duplicate 
 
-
+//@todo: Remove caller this is just for testing 
 $update;
-export function icrc2_approve(approve_args:ApproveArgs):Result<nat,ApproveError> {
+export function icrc2_approve(Caller:Account,approve_args:ApproveArgs):Result<nat,ApproveError> {
 
-    const kind: TransactionKind = {
-        Approve: null
-    };
-    const Caller: Account = {
-        owner: ic.caller(),
-        subaccount: approve_args.from_subaccount
-    };
+
+    // const Caller: Account = {
+    //     owner: ic.caller(),
+    //     subaccount: approve_args.from_subaccount
+    // };
     const Spender: Account = approve_args.spender
 
     let currentTokenState:State;
@@ -38,6 +37,9 @@ export function icrc2_approve(approve_args:ApproveArgs):Result<nat,ApproveError>
             return({TemporarilyUnavailable:null})
         }
     })
+
+
+
     //@ts-ignore
     const validate_approval_result = validate_approve(approve_args,Caller,currentTokenState,currentLedgerTime)
 
@@ -48,15 +50,21 @@ export function icrc2_approve(approve_args:ApproveArgs):Result<nat,ApproveError>
 
 
 
-    //Final check to make sure the allowance was updated 
+    // Final check to make sure the allowance was updated 
     const newAllowance = icrc2_allowance({account:Caller,spender:Spender})
 
     if(newAllowance.allowance !== approve_args.amount ){
         ic.trap(`${Result.Err<nat,ApproveError>({GenericError:{error_code:404n,message:"Current allowance != argument allowance"}})}`)
-    }
+    } 
 
     return(Result.Ok<nat,ApproveError>(approve_args.amount))
 
 
+
+}
+
+$query;
+export function testingFee(fee:Opt<nat>):boolean {
+    return(testingisValidFee(fee)) 
 
 }

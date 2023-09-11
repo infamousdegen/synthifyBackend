@@ -25,8 +25,9 @@ import {
 
 import { icrc1_balance_of,icrc2_allowance } from './query/queryFunctions';
 import { TokenState,AllowanceStorage,AccountBalance } from './storage/storage';
+import { padSubAccount } from './helper';
 
-import { get_account_keys } from './helper';
+
 
 
 import { is_subaccount_valid,
@@ -45,11 +46,11 @@ export function validate_transfer_from(
 
 ):ValidateTransferFromResult{
 
-    const Caller: Account = from
+    const Caller: Account = padSubAccount(from)
 
-    const From: Account = args.from
+    const From: Account = padSubAccount(args.from)
 
-    const To: Account = args.to
+    const To: Account = padSubAccount(args.to)
 
     const finalCreateTime = args.created_at_time.Some ? args.created_at_time.Some : currentLedgerTime
 
@@ -61,7 +62,7 @@ export function validate_transfer_from(
 
     const CallerAllowance:Allowance = icrc2_allowance(
         {
-            account :args.from,
+            account :From,
             spender :Caller
 
         
@@ -146,9 +147,9 @@ export function validate_transfer_from(
     
     currentFee = args.fee.Some ?? currentFee;
 
-    const FromBalance = icrc1_balance_of(from)
+    const FromBalance = icrc1_balance_of(From)
 
-    if((isValidBalance(from,currentFee + args.amount) !== true)){
+    if((isValidBalance(From,currentFee + args.amount) !== true)){
         return{
             err:
             {
@@ -314,9 +315,9 @@ export function validate_approve(
             Approve: null
         };
 
-        const Caller: Account = from
+        const Caller: Account = padSubAccount(from)
 
-        const Spender:Account = args.spender;
+        const Spender: Account = padSubAccount(args.spender);
 
 
         let currentFee:nat = currentTokenState.fee;
@@ -332,10 +333,12 @@ export function validate_approve(
 
         const currentCallerBalance = icrc1_balance_of(Caller)
 
+
+
     
 
 
-        if(is_subaccount_valid(args.spender.subaccount)!== true){
+        if(is_subaccount_valid(Spender.subaccount)!== true){
             return {
                 err:
                 {
@@ -348,7 +351,7 @@ export function validate_approve(
         }
 
 
-        if(is_subaccount_valid(from.subaccount)!== true){
+        if(is_subaccount_valid(Caller.subaccount)!== true){
             return {
                 err:
                 {
@@ -391,8 +394,9 @@ export function validate_approve(
         
         currentFee = args.fee.Some ?? currentFee;
 
+        if(args.expires_at.Some){
 
-        if(isExpired(args.expires_at)){
+        if(isExpired(args.expires_at.Some)){
             return{
                 err:
                 {
@@ -400,6 +404,7 @@ export function validate_approve(
                 }
             }
         }
+    }
 
 
         if(is_created_at_time_in_future(currentLedgerTime,finalCreateTime,permitted_drift_nanos)){
@@ -434,16 +439,14 @@ export function validate_approve(
         }
     
 
-        const {owner_key: from_owner_key,subaccount_key: from_subaccount_key} = get_account_keys(Caller)
-        const {owner_key: to_owner_key,subaccount_key: to_subaccount_key} = get_account_keys(Spender)
-
         const Key:AllowanceKey = {
-            [from_owner_key] : {
-                [from_subaccount_key] :   {
-                    [to_owner_key]:to_subaccount_key
-                }
-            }
+            from:Caller,
+            to:Spender
         }
+
+
+
+
 
         const insertionData:AllowanceStorageData = {
             Allowance:{
@@ -460,7 +463,9 @@ export function validate_approve(
         }
 
         const newTransaction:Transaction = {
-            args: Opt.Some( args),
+            args: {
+                ApproveArgs:args
+            },
             fee: currentFee,
             from: Opt.Some(Caller),
             kind: kind,
@@ -485,7 +490,7 @@ export function validate_approve(
         AccountBalance.insert(Caller,newCallerBalance)
         
 
-        if(currentTokenState.minting_account.Some){
+        if(currentTokenState.minting_account.Some!== undefined){
             const mintingAccountBalance = icrc1_balance_of(currentTokenState.minting_account.Some)
             AccountBalance.insert(currentTokenState.minting_account.Some,mintingAccountBalance + currentFee)
         }

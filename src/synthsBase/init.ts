@@ -15,11 +15,14 @@ import {
     blob,
     Variant,
     int,
-    nat64
+    nat64,
+    Vec,
+    Tuple
 } from 'azle';
 
-import {  InitArgs,State } from './types';
-import { TokenState } from './storage/storage';
+import {  InitArgs,State,AllowanceKey,Account,AllowanceStorageData,Allowance } from './types';
+import { AllowanceStorage, TokenState,AccountBalance } from './storage/storage';
+import { padSubAccount } from './helper';
 
 
 
@@ -74,10 +77,10 @@ export  function constructor(Init:InitArgs):string {
 
 
 $update;
-export function testinConstructor():string{
+export function testingTokenState():string{
     const state:State = {
         decimals:8n,
-        fee: 0n,
+        fee: 10n,
         metadata : [
 
             ['icrc1:decimals', { Nat: 8n }],
@@ -101,10 +104,10 @@ export function testinConstructor():string{
         minting_account: Opt.None,
         primary_account: Opt.None,
         name: "Token",
-        permitted_drift_nanos: 0n,
+        permitted_drift_nanos: 86_400_000_000_000n,
         symbol: "symbol",
         total_supply:0n,
-        transaction_window_nanos:0n,
+        transaction_window_nanos:86_400_000_000_000n,
         currencyKey: new Uint8Array(),
         transactions : []
 
@@ -112,4 +115,75 @@ export function testinConstructor():string{
 
     TokenState.insert(1n,state)
     return("Done")
+}
+
+$update;
+export function testingBalance(amount:nat):string{
+    let account:Account = {
+        owner: Principal.fromText("giy3c-khloq-v2zio-tjs3r-evrzf-7fzm4-c3zlh-227wl-vburm-4zbcp-lqe"),
+        subaccount: Opt.None
+        
+    }
+
+    account = padSubAccount(account)
+    AccountBalance.insert(account,amount)
+    return("done")
+}
+$update;
+export function testingAllowance():string {
+
+    let from:Account = {
+        owner:Principal.fromText("giy3c-khloq-v2zio-tjs3r-evrzf-7fzm4-c3zlh-227wl-vburm-4zbcp-lqe"),
+        subaccount:Opt.None
+    }
+    
+    let to:Account = {
+        owner:Principal.fromText("giy3c-khloq-v2zio-tjs3r-evrzf-7fzm4-c3zlh-227wl-vburm-4zbcp-lqe"),
+        subaccount:Opt.None
+    }
+
+    from = padSubAccount(from)
+    to = padSubAccount(to)
+
+    const allowanceKey:AllowanceKey = {
+        from:from,
+        to:to
+    }
+    
+    const allowance:Allowance = {
+        allowance:10_000n,
+        expires_at:Opt.None
+    }
+
+    const allowanceStorage:AllowanceStorageData = {
+        Allowance:allowance,
+        fee:0n,
+        created_at_time:ic.time(),
+        memo:Opt.None
+    }
+    AllowanceStorage.insert(allowanceKey,allowanceStorage)
+    return("done")
+
+}
+
+$query;
+export function getCurrentState():State {
+    return(match(TokenState.get(1n),{
+        Some:(args) => args,
+        None:() => ic.trap("Some error occured")
+    }))
+}
+$query;
+export function items(): Vec<Tuple<[AllowanceKey, AllowanceStorageData]>> {
+    return AllowanceStorage.items();
+}
+
+$query;
+export function keys(): Vec<AllowanceKey> {
+    return AllowanceStorage.keys();
+}
+
+$query;
+export function values(): Vec<AllowanceStorageData> {
+    return AllowanceStorage.values();
 }

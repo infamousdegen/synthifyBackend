@@ -15,10 +15,10 @@ import {
     AllowanceStorageData
 } from '../types';
 
-import { get_account_keys } from '../helper';
 
 import { TokenState,AccountBalance, AllowanceStorage } from '../storage/storage';
 import { icrc1_balance_of, icrc2_allowance } from '../query/queryFunctions';
+import { padSubAccount } from '../helper';
 
 export function handle_transfer_from(args: TransferFromArgs, caller: Account): TransferFromResult {
 
@@ -30,9 +30,10 @@ export function handle_transfer_from(args: TransferFromArgs, caller: Account): T
 
     let fee:nat = 0n;
 
-    const fromAccount:Account = args.from
+    const fromAccount:Account = padSubAccount(args.from)
 
-    const toAccount:Account = args.to
+    const toAccount:Account = padSubAccount(args.to)
+
 
 
     match(TokenState.get(1n),{
@@ -52,7 +53,9 @@ export function handle_transfer_from(args: TransferFromArgs, caller: Account): T
 
 
     const newTransaction:Transaction = {
-        args: Opt.Some( args),
+        args: {
+            TransferFromArgs:args
+        },
         fee: fee,
         from: Opt.Some(caller),
         kind: {
@@ -103,17 +106,12 @@ export function handle_transfer_from(args: TransferFromArgs, caller: Account): T
     const newAllowance:Allowance = {allowance:currentAllowance.allowance - args.amount,expires_at:currentAllowance.expires_at}
 
 
-    
-    const {owner_key: from_owner_key,subaccount_key: from_subaccount_key} = get_account_keys(fromAccount)
-    const {owner_key: to_owner_key,subaccount_key: to_subaccount_key} = get_account_keys(caller)
 
     const Key:AllowanceKey = {
-     [from_owner_key] : {
-         [from_subaccount_key] :   {
-             [to_owner_key]:to_subaccount_key
-         }
-     }
+        from: fromAccount,
+        to: toAccount
     }
+
 
 
 

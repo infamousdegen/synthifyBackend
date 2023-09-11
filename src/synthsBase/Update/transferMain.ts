@@ -71,12 +71,15 @@ export function icrc1_transfer(args: TransferArgs): Result<nat,TransferError> {
 
 
 $update;
-export function icrc2_transfer_from(args:TransferFromArgs): Result<nat,TransferFromError>{
-    const Caller:Account = {
-        owner: ic.caller(),
-        subaccount:args.spender_subaccount
+export function icrc2_transfer_from(caller:Account,args:TransferFromArgs): Result<nat,TransferFromError>{
+    // const Caller:Account = {
+    //     owner: ic.caller(),
+    //     subaccount:args.spender_subaccount
 
-    }
+    // }
+
+    const Caller:Account = caller
+
 
 
 

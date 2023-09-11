@@ -1,6 +1,34 @@
 type Account = record { owner : principal; subaccount : opt vec nat8 };
 type Allowance = record { allowance : nat; expires_at : opt nat64 };
 type AllowanceArgs = record { account : Account; spender : Account };
+type AllowanceKey = record { to : Account; from : Account };
+type AllowanceStorageData = record {
+  fee : nat;
+  memo : opt vec nat8;
+  Allowance : Allowance;
+  created_at_time : nat;
+};
+type ApproveArgs = record {
+  fee : opt nat;
+  memo : opt vec nat8;
+  from_subaccount : opt vec nat8;
+  created_at_time : opt nat;
+  amount : nat;
+  expected_allowance : opt nat;
+  expires_at : opt nat64;
+  spender : Account;
+};
+type ApproveError = variant {
+  GenericError : _InlineApproveErrorGenericError;
+  TemporarilyUnavailable;
+  Duplicate : _InlineApproveErrorDuplicate;
+  BadFee : _InlineApproveErrorBadFee;
+  AllowanceChanged : _InlineApproveErrorAllowanceChanged;
+  CreatedInFuture : _InlineApproveErrorExpired;
+  TooOld;
+  Expired : _InlineApproveErrorExpired;
+  InsufficientFunds : _InlineApproveErrorInsufficientFunds;
+};
 type InitArgs = record {
   fee : nat;
   metadata : vec record { text; Value };
@@ -14,23 +42,117 @@ type InitArgs = record {
   decimal : nat;
   symbol : text;
 };
+type State = record {
+  fee : nat;
+  decimals : nat;
+  metadata : vec record { text; Value };
+  minting_account : opt Account;
+  name : text;
+  primary_account : opt Account;
+  transaction_window_nanos : nat64;
+  transactions : vec Transaction;
+  permitted_drift_nanos : nat64;
+  currencyKey : vec nat8;
+  supported_standards : vec SupportedStandard;
+  total_supply : nat;
+  symbol : text;
+};
 type SupportedStandard = record { url : text; name : text };
+type Transaction = record {
+  fee : nat;
+  args : _InlineTransactionArgs;
+  from : opt Account;
+  kind : TransactionKind;
+  timestamp : nat64;
+};
+type TransactionKind = variant { Approve; Burn; Mint; Transfer; TransferFrom };
+type TransferArgs = record {
+  to : Account;
+  fee : opt nat;
+  memo : opt vec nat8;
+  from_subaccount : opt vec nat8;
+  created_at_time : opt nat64;
+  amount : nat;
+};
+type TransferError = variant {
+  GenericError : _InlineTransferErrorGenericError;
+  TemporarilyUnavailable;
+  BadBurn : _InlineTransferErrorBadBurn;
+  Duplicate : _InlineTransferErrorDuplicate;
+  BadFee : _InlineTransferErrorBadFee;
+  CreatedInFuture : _InlineTransferErrorCreatedInFuture;
+  TooOld;
+  InsufficientFunds : _InlineTransferErrorInsufficientFunds;
+};
+type TransferFromArgs = record {
+  to : Account;
+  fee : opt nat;
+  spender_subaccount : opt vec nat8;
+  from : Account;
+  memo : opt vec nat8;
+  created_at_time : opt nat64;
+  amount : nat;
+};
+type TransferFromError = variant {
+  GenericError : _InlineApproveErrorGenericError;
+  TemporarilyUnavailable;
+  InsufficientAllowance : _InlineTransferFromErrorInsufficientAllowance;
+  BadBurn : _InlineTransferErrorBadBurn;
+  Duplicate : _InlineApproveErrorDuplicate;
+  BadFee : _InlineApproveErrorBadFee;
+  CreatedInFuture : _InlineApproveErrorExpired;
+  TooOld;
+  InsufficientFunds : _InlineApproveErrorInsufficientFunds;
+};
 type Value = variant { Int : int; Nat : nat; Blob : vec nat8; Text : text };
-type _AzleResult = variant { Ok : nat; Err : text };
-type _AzleResult_1 = variant { Ok : vec record { text; Value }; Err : text };
-type _AzleResult_2 = variant { Ok : opt Account; Err : text };
-type _AzleResult_3 = variant { Ok : text; Err : text };
-type _AzleResult_4 = variant { Ok : vec SupportedStandard; Err : text };
+type _AzleResult = variant { Ok : nat; Err : TransferError };
+type _AzleResult_1 = variant { Ok : nat; Err : ApproveError };
+type _AzleResult_2 = variant { Ok : nat; Err : TransferFromError };
+type _InlineApproveErrorAllowanceChanged = record { current_allowance : nat };
+type _InlineApproveErrorBadFee = record { expected_fee : nat };
+type _InlineApproveErrorDuplicate = record { duplicate_of : nat };
+type _InlineApproveErrorExpired = record { ledger_time : nat64 };
+type _InlineApproveErrorGenericError = record {
+  message : text;
+  error_code : nat;
+};
+type _InlineApproveErrorInsufficientFunds = record { balance : nat };
+type _InlineTransactionArgs = variant {
+  ApproveArgs : ApproveArgs;
+  TransferFromArgs : TransferFromArgs;
+  TransferArgs : TransferArgs;
+};
+type _InlineTransferErrorBadBurn = record { min_burn_amount : nat };
+type _InlineTransferErrorBadFee = record { expected_fee : nat };
+type _InlineTransferErrorCreatedInFuture = record { ledger_time : nat64 };
+type _InlineTransferErrorDuplicate = record { duplicate_of : nat };
+type _InlineTransferErrorGenericError = record {
+  message : text;
+  error_code : nat;
+};
+type _InlineTransferErrorInsufficientFunds = record { balance : nat };
+type _InlineTransferFromErrorInsufficientAllowance = record { allowance : nat };
 service : () -> {
   constructor : (InitArgs) -> (text);
+  getCurrentState : () -> (State) query;
   icrc1_balance_of : (Account) -> (nat) query;
-  icrc1_decimals : () -> (_AzleResult) query;
-  icrc1_metadata : () -> (_AzleResult_1) query;
-  icrc1_minting_account : () -> (_AzleResult_2) query;
-  icrc1_name : () -> (_AzleResult_3) query;
-  icrc1_supported_standards : () -> (_AzleResult_4) query;
-  icrc1_symbol : () -> (_AzleResult_3) query;
-  icrc1_total_supply : () -> (_AzleResult) query;
+  icrc1_decimals : () -> (nat) query;
+  icrc1_fee : () -> (nat) query;
+  icrc1_metadata : () -> (vec record { text; Value }) query;
+  icrc1_minting_account : () -> (opt Account) query;
+  icrc1_name : () -> (text) query;
+  icrc1_supported_standards : () -> (vec SupportedStandard) query;
+  icrc1_symbol : () -> (text) query;
+  icrc1_total_supply : () -> (nat) query;
+  icrc1_transfer : (TransferArgs) -> (_AzleResult);
   icrc2_allowance : (AllowanceArgs) -> (Allowance) query;
-  testinConstructor : () -> (text);
+  icrc2_approve : (Account, ApproveArgs) -> (_AzleResult_1);
+  icrc2_transfer_from : (Account, TransferFromArgs) -> (_AzleResult_2);
+  items : () -> (vec record { AllowanceKey; AllowanceStorageData }) query;
+  keys : () -> (vec AllowanceKey) query;
+  testingAllowance : () -> (text);
+  testingBalance : (nat) -> (text);
+  testingFee : (opt nat) -> (bool) query;
+  testingTokenState : () -> (text);
+  values : () -> (vec AllowanceStorageData) query;
 }

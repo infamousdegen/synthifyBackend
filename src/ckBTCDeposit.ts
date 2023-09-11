@@ -8,9 +8,15 @@ import {
     Opt,
     Principal,
     $update,
-    Variant
+    Variant,
+    $query
 } from 'azle';
 import {ICRC,ICRCTransferError} from 'azle/canisters/icrc'
+
+import { encodeIcrcAccount } from "@dfinity/ledger";
+
+
+
 
 
 
@@ -106,7 +112,8 @@ export async function transfer(
     });
 }
 
-$update:
+
+
 
 function padPrincipalWithZeros(blob: blob): blob {
     let newUin8Array = new Uint8Array(32);

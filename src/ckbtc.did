@@ -52,7 +52,7 @@ type _InlineUtxoStatusMinted = record {
 };
 service : () -> {
   getBalance : () -> (nat64);
-  getDepositAddress : () -> (text);
+  getBtcDepositAddress : () -> (text);
   transfer : (text, nat) -> (ManualReply);
   updateBalance : () -> (ManualReply_1);
 }

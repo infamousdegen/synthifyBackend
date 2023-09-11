@@ -1,79 +1,90 @@
 import { AccountBalance,TokenState,AllowanceStorage } from "../storage/storage";
-import { $query,match,nat,Result,Opt,$update,blob,int,Vec, Tuple,Record } from "azle";
-import { Account,Metadatum,SupportedStandard,AllowanceArgs,AllowanceKey, Allowance, State } from "../types";
+import { $query,match,nat,Result,Opt,$update,blob,int,Vec, Tuple,Record,ic } from "azle";
+import { Account,Metadatum,SupportedStandard,AllowanceArgs,AllowanceKey, Allowance, State,AllowanceStorageData } from "../types";
 
 import { padSubAccount } from "../helper";
 
 
 
 $query;
-export function icrc1_name():Result<string,string> {
+export function icrc1_name():string {
     return(match(TokenState.get(1n),{
         Some: (arg) =>{
-            return Result.Ok<string,string>(arg.name)
+            return (arg.name)
         },
         //@note: None condition should be technically imporssinly 
-        None: () =>  Result.Err<string,string>("Some Error Occured")
+        None: () =>  ic.trap("Some error occured")
     }))
 }
 
 $query;
-export function icrc1_symbol(): Result<string,string>{
+export function icrc1_symbol(): string{
     return(match(TokenState.get(1n),{
         Some: (arg) =>{
-            return Result.Ok<string,string>(arg.symbol)
+            return (arg.symbol)
         },
         //@note: None condition should be technically imporssinly 
-        None: () =>  Result.Err<string,string>("Some Error Occured")
+        None: () =>  ic.trap("Some error occured")
     }))
 }
 
 $query;
-export function icrc1_decimals(): Result<nat,string>{
+export function icrc1_decimals(): nat{
     return(match(TokenState.get(1n),{
         Some: (arg) =>{
-            return Result.Ok<nat,string>(arg.decimals)
+            return (arg.decimals)
         },
         //@note: None condition should be technically imporssinly 
-        None: () =>  Result.Err<nat,string>("Some Error Occured")
+        None: () =>  ic.trap("Some error occured")
+    }))
+}
+
+$query;
+export function icrc1_fee():nat{
+    return(match(TokenState.get(1n),{
+        Some: (arg) =>{
+            return (arg.fee)
+        },
+        //@note: None condition should be technically imporssinly 
+        None: () =>  ic.trap("Error Occured")
     }))
 }
 
 
 $query;
-export function icrc1_metadata() : Result<Metadatum,string>{
-
+export function icrc1_metadata() : Metadatum{
     return(match(TokenState.get(1n),{
         Some: (arg) =>{
             
-            return Result.Ok<Metadatum,string>(arg.metadata)
+            return (arg.metadata)
         },
         //@note: None condition should be technically imporssinly 
-        None: () =>  Result.Err<Metadatum,string>("Some Error Occured")
+        None: () =>  ic.trap("Some error occured")
     }))
 }
 
 $query;
-export function icrc1_total_supply(): Result<nat,string>{
+export function icrc1_total_supply(): nat{
     return(match(TokenState.get(1n),{
         Some: (arg) =>{
-            return Result.Ok<nat,string>(arg.total_supply)
+            return (arg.total_supply)
         },
         //@note: None condition should be technically imporssinly 
-        None: () =>  Result.Err<nat,string>("Some Error Occured")
+        None: () =>  ic.trap("Some error occured")
     }))
 }
 
 $query;
-export function icrc1_minting_account(): Result<Opt<Account>,string>{
+export function icrc1_minting_account(): Opt<Account>{
     return(match(TokenState.get(1n),{
         Some: (arg) =>{
-            return Result.Ok<Opt<Account>,string>(arg.minting_account)
+            return (arg.minting_account)
         },
         //@note: None condition should be technically imporssinly 
-        None: () =>  Result.Err<Opt<Account>,string>("Some Error Occured")
+        None: () =>  ic.trap("Some error occured")
     }))
 }
+
 
 $query
 export function icrc1_balance_of(Account:Account): nat{
@@ -89,32 +100,43 @@ export function icrc1_balance_of(Account:Account): nat{
 }
 
 $query;
-export function icrc1_supported_standards(): Result<Vec<SupportedStandard>,string>{
+export function icrc1_supported_standards(): Vec<SupportedStandard>{
     return(match(TokenState.get(1n),{
         Some: (arg) =>{
-            return Result.Ok<Vec<SupportedStandard>,string>(arg.supported_standards)
+            return (arg.supported_standards)
         },
         //@note: None condition should be technically imporssinly 
-        None: () =>  Result.Err<Vec<SupportedStandard>,string>("Error Occured")
+        None: () =>  ic.trap("Some error occured")
     }))
 }
 
 $query;
 export function icrc2_allowance(allowance_args:AllowanceArgs):Allowance{
 
-    allowance_args.account = padSubAccount(allowance_args.account)
-    allowance_args.spender = padSubAccount(allowance_args.spender)
+    const From:Account = padSubAccount(allowance_args.account)
+    const Spender:Account = padSubAccount(allowance_args.spender)
 
 
    const Key:AllowanceKey = {
-    from:allowance_args.account,
-    to:allowance_args.spender
+    from:From,
+    to:Spender
    }
+
    return(match(AllowanceStorage.get(Key),{
     Some:(args) => {
         return (args.Allowance)
     },
-    None:() => ({allowance:0n,expires_at:Opt.None})
+    //change this to 0 alloance 
+    None:() => {
+        return {
+            allowance:0n,
+            expires_at:Opt.None
+        }
+    }
    })) 
 }
+
+
+
+
 

@@ -1,4 +1,4 @@
-import { Subaccount,Account,OwnerKey,SubaccountKey, TransferError,ApproveError } from "./types";
+import { Subaccount,Account,OwnerKey,SubaccountKey, TransferError,ApproveError, State } from "./types";
 import { Opt,blob,nat32,nat64,ic,nat,match,Result,Principal } from "azle";
 import { TokenState,AccountBalance } from "./storage/storage";
 import { icrc1_balance_of } from "./query/queryFunctions";
@@ -13,9 +13,10 @@ export function is_subaccount_valid(subaccount: Opt<Subaccount>): boolean {
 
 export function is_memo_valid(subaccount: Opt<Subaccount>): boolean {
 
-        if(subaccount.Some && subaccount.Some.length >= 32){
+    if(subaccount.Some!==undefined){
+        if( subaccount.Some.length >= 32){
             return false
-        }
+        }}
         return true
 }
 
@@ -79,10 +80,10 @@ export function is_created_at_time_too_old(currentTime:nat,created_at_time: nat6
 export function isValidFee(userFee:Opt<nat>): boolean{
     return match(TokenState.get(1n),{
         Some:(arg)=>{
-
-             if(userFee.Some && userFee.Some < arg.fee){
+            if(userFee.Some!==undefined){
+             if( userFee.Some < arg.fee){ 
                 return false
-             }
+             }}
 
              return true
 
@@ -92,13 +93,30 @@ export function isValidFee(userFee:Opt<nat>): boolean{
         }
     })
 }
+export function testingisValidFee(userFee:Opt<nat>): boolean{
+    return match(TokenState.get(1n),{
+        Some:(arg)=>{
+            if(userFee.Some!==undefined){
+            if( userFee.Some<arg.fee) {
+                return false;
+            }}
+            return true
 
-export function isExpired(expires_at:Opt<nat>): boolean {
+        },
+        None:() => {
+            return ic.trap("Error")
+        }
+    })
+}
+
+
+export function isExpired(expires_at:nat): boolean {
     const now = ic.time()
 
-    if(expires_at.Some && expires_at.Some < now){
+    if(expires_at < now){
         return true
     }
+
 
     return false
 }
@@ -127,9 +145,10 @@ export function is_minting_account(owner: Principal): boolean {
     return match(TokenState.get(1n),{
         Some:(arg)=>{
 
-            if(arg.minting_account.Some && owner.toString() === arg.minting_account.Some.owner.toString()){
+            if(arg.minting_account.Some!==undefined){
+            if(owner.toString() === arg.minting_account.Some.owner.toString()){
                 return true
-            }
+            }}
 
              return false
 

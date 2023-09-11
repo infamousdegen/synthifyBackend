@@ -16,7 +16,8 @@
       "root":"src",
       "ts": "src/ckBTCDeposit.ts",
       "candid": "src/ckbtc.did",
-      "wasm": ".azle/ckbtc/ckbtc.wasm.gz"
+      "wasm": ".azle/ckbtc/ckbtc.wasm.gz",
+      "optimize":"size"
     },
     "synbase":{
       "main":"src/synthsBase/index.ts",
