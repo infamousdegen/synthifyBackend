@@ -13,7 +13,6 @@ import {
 } from 'azle';
 import {ICRC,ICRCTransferError} from 'azle/canisters/icrc'
 
-import { encodeIcrcAccount } from "@dfinity/ledger";
 
 
 

@@ -1,20 +1,20 @@
 {
   "canisters": {
     "oracle": {
-      "main": "src/oracle.ts",
+      "main": "src/OracleModule/oracle.ts",
       "type": "custom",
       "build": "npx azle oracle",
       "root": "src",
-      "ts": "src/oracle.ts",
+      "ts": "src/OracleModule/oracle.ts",
       "candid": "src/oracle.did",
       "wasm": ".azle/oracle/oracle.wasm.gz"
     },
     "ckbtc":{
-      "main":"src/ckBTCDeposit.ts",
+      "main":"src/DepositModule/ckBTCDeposit.ts",
       "type": "custom",
       "build": "npx azle ckbtc",
       "root":"src",
-      "ts": "src/ckBTCDeposit.ts",
+      "ts": "src/DepositModule/ckBTCDeposit.ts",
       "candid": "src/ckbtc.did",
       "wasm": ".azle/ckbtc/ckbtc.wasm.gz",
       "optimize":"size"
@@ -27,6 +27,15 @@
       "ts":"src/synthsBase/index.ts",
       "candid":"src/synthsBase/synbase.did",
       "wasm":".azle/synbase/synbase.wasm.gz"
+    },
+    "vaultmanager":{
+      "main":"src/VaultManager/VaultManager.ts",
+      "type":"custom",
+      "build": "npx azle vaultmanager",
+      "root":"src",
+      "ts":"src/VaultManager/VaultManager.ts",
+      "candid":"src/vaultmanager.did",
+      "wasm":".azle/vaultmanager/vaultmanager.wasm.gz"
     }
   }
 }

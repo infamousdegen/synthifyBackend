@@ -1,0 +1,26 @@
+type AdministrativeData = record {
+  priimary_owner : principal;
+  guardians : vec principal;
+};
+type VaultMetadata = record { DebtTokeName : text; CollateralName : text };
+type VaultStateData = record {
+  DebtTokenPrincipal : principal;
+  priimary_owner : principal;
+  oracle : principal;
+  currentAccumulatorValue : float64;
+  CollateralPrincipal : principal;
+  interestFeePercentage : float64;
+  collaterisationRatio : float64;
+};
+type VaultStorageData = record {
+  VaultStateData : VaultStateData;
+  VaultMedata : VaultMetadata;
+  AdministrativeData : AdministrativeData;
+};
+type _AzleResult = variant { Ok : text; Err : text };
+service : () -> {
+  calculatenewAccumulator : (float64, float64, nat32) -> (float64) query;
+  getPriceFromCollateral : () -> (text);
+  init : (VaultStorageData) -> (_AzleResult);
+  normalizeDebt : (nat) -> (float64) query;
+}
