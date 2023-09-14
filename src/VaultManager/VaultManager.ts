@@ -1,8 +1,13 @@
+//@todo: FIx duplicate transactions
+
 import { Record,Principal,$update,Result, CallResult,ic, Service, serviceUpdate, $query,nat, float64,nat32, float32,match,Vec,blob } from "azle";
 import { initDate,VaultStorageData,IndividualVaultData } from "./types";
 import { VaultStorage,IndividualVaultStorage,UserVaultIdMapping } from "./storage";
 
 import {calculateNewAccumulator} from './helpers'
+
+import {ICRC,ICRCTransferError} from 'azle/canisters/icrc'
+
 
 //This means that 1 tokens = 1*10^8
 const decimalplaces:nat = 8n
@@ -15,11 +20,24 @@ const decimalplaces:nat = 8n
 class Oracle extends Service {
     @serviceUpdate
     getBTCUSDT:() => CallResult<string>
+
+}
+
+class DepositModule extends Service {
+    @serviceUpdate
+    getBalance:(of:Principal) => CallResult<nat>
+
+    @serviceUpdate
+    transferToVault:(from:Principal,vaultId:nat,_VaultManagerAddress:Principal,amount:nat) => CallResult<Result<nat,ICRCTransferError>>
 }
 
 
+const oracleCanister = new Oracle(
+    Principal.fromText("be2us-64aaa-aaaaa-qaabq-cai"))
 
-const oracleCanister = new Oracle(Principal.fromText("be2us-64aaa-aaaaa-qaabq-cai"))
+const DepositModuleCanister = new DepositModule(
+    Principal.fromText("")
+)
 
 $update;
 export function init(InitData:VaultStorageData):Result<string,string>{
@@ -78,6 +96,37 @@ export function createVault(memo:blob):nat{
     VaultStorage.insert(1n,updateVaultData)
     return(nextVaultId)
 
+
+}
+
+//@note: ANyonne can 
+
+$update;
+export async function addCollateral(_vaultId:nat,collateralAmount:nat):Promise<Result<nat,string>>{
+    const Caller:Principal = ic.caller()
+    const Balance = match(await DepositModuleCanister.getBalance(Caller).call(),{
+        Ok(arg) {
+            return arg
+        },
+        Err() {
+            ic.trap("Some error occured when fetching balance ")
+        },
+
+    })
+    if(Balance<collateralAmount){
+        ic.trap("You do not have sufficient balance please deposit using Deposit Page")
+    }
+
+    const result = await DepositModuleCanister.transferToVault(ic.caller(),_vaultId,ic.id(),collateralAmount).call()
+
+    const inBalance = match(result,{
+        Ok(arg) {
+            return arg
+        },
+        Err{
+            ic.trap("Erro occured")
+        }
+    })
 
 }
 

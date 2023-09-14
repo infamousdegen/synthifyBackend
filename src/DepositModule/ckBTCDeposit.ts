@@ -9,7 +9,8 @@ import {
     Principal,
     $update,
     Variant,
-    $query
+    $query,
+    Result
 } from 'azle';
 import {ICRC,ICRCTransferError} from 'azle/canisters/icrc'
 
@@ -29,13 +30,15 @@ const minter = new Minter(
     Principal.fromText("mqygn-kiaaa-aaaar-qaadq-cai")
 );
 
+let VaultManagerAddress:Principal
+
 $update;
-export async function getBalance(): Promise<nat64> {
+export async function getBalance(of:Principal): Promise<nat> {
     const result = await ckBTC
         .icrc1_balance_of({
             owner: ic.id(),
             subaccount: Opt.Some(
-                padPrincipalWithZeros(ic.caller().toUint8Array())
+                padPrincipalWithZeros(of.toUint8Array())
             )
         })
         .call();
@@ -111,6 +114,38 @@ export async function transfer(
     });
 }
 
+$update;
+export async function transferToVault(from:Principal,vaultId:nat,_VaultManagerAddress:Principal,amount:nat):Promise<Result<nat,ICRCTransferError>> 
+{
+    if(ic.caller() != VaultManagerAddress){
+        ic.trap("Only Vault Can call this function")
+    }
+    const subaccount:blob = bigNumberToUint8Array(vaultId)
+    const result = await ckBTC
+        .icrc1_transfer({
+            from_subaccount: Opt.Some(
+                padPrincipalWithZeros(from.toUint8Array())
+            ),
+            to: {
+                owner: _VaultManagerAddress,
+                subaccount: Opt.Some(
+                    padPrincipalWithZeros(subaccount)
+                )
+            },
+            amount,
+            fee: Opt.None,
+            memo: Opt.None,
+            created_at_time: Opt.None
+        })
+        .call();
+
+        return match(result, {
+            Ok: (ok) => ok,
+            Err: (err) => ic.trap(err)
+        });
+    
+}
+
 
 
 
@@ -119,3 +154,14 @@ function padPrincipalWithZeros(blob: blob): blob {
     newUin8Array.set(blob);
     return newUin8Array;
 }
+
+
+
+function bigNumberToUint8Array(bigNumber:nat):blob {
+    const str = bigNumber.toString();
+    const array = new Uint8Array(str.length);
+    for (let i = 0; i < str.length; i++) {
+      array[i] = str.charCodeAt(i);
+    }
+    return array;
+  }
