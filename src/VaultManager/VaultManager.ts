@@ -1,14 +1,16 @@
 //@todo: FIx duplicate transactions
 
-import { Record,Principal,$update,Result, CallResult,ic, Service, serviceUpdate, $query,nat, float64,nat32, float32,match,Vec,blob, nat64 } from "azle";
+import { Record,Principal,$update,Result, CallResult,ic, Service, serviceUpdate, $query,nat, float64,nat32, float32,match,Vec,blob, nat64, 
+    serviceQuery,Opt } from "azle";
 import { initDate,VaultStorageData,IndividualVaultData,VaultStateData } from "./types";
 import { VaultStorage,IndividualVaultStorage,UserVaultIdMapping } from "./storage";
-import {TransferError} from "../synthsBase/types"
+import {TransferError,AllowanceArgs,Allowance,Account} from "../synthsBase/types"
 import {calculateNewAccumulator} from './helpers'
 
 import {ICRC,ICRCTransferError} from 'azle/canisters/icrc'
 import { padPrincipalWithZeros } from "../synthsBase/helper";
 
+import { icrc2_allowance } from "../synthsBase";
 
 //This means that 1 tokens = 1*10^8
 const decimalplaces:nat = 8n
@@ -37,7 +39,18 @@ class SynthMinter extends Service {
     mintToken:(amount:nat,account:Principal,subAccount:blob) => CallResult<Result<nat,TransferError>>
 }
 
+class SynthToken extends Service {
+    @serviceQuery
+    icrc2_allowance:(allowance_args:AllowanceArgs) => CallResult<Allowance>
+    @serviceQuery
+    icrc1_balance_of:(Account:Account) => CallResult<nat>
+}
+
 const SynthMinterCanister = new SynthMinter(
+    Principal.fromText("")
+)
+
+const SynthTokenCanister = new SynthToken(
     Principal.fromText("")
 )
 
@@ -54,6 +67,7 @@ export function init(InitData:VaultStorageData):Result<string,string>{
     return Result.Ok<string,string>("Done")
 
 }
+
 
 //this is used to create empty Vault 
 //@param: For this user to enter any blob if necessary
@@ -333,6 +347,73 @@ export async function borrow(_vaultId:nat,_debt:nat):Promise<nat>{
 }
 
 
+//@todo: Add this transaction to transaction list 
+//@todo: Assumption the _debtToRepay will be entered in 8 decimals format 
+$update;
+export async function repayDebt(_debtToRepay:nat,_vaultId:nat,_subAccount:Opt<blob>) {
+    const Caller:Principal = ic.caller()
+
+    const currentLedgerTime = ic.time()
+    //checking whether the vaultId exist 
+    const currentVaultData = match ( IndividualVaultStorage.get(_vaultId),{
+        Some(arg) { 
+            return arg
+        },
+        None:() => ic.trap("Please create a vault  before you borrow")
+    })
+
+    if(currentVaultData.primaryOwner !== Caller){
+        ic.trap("You are not the vault owner ")
+    }
+
+    
+    const currentStateData = match(VaultStorage.get(1n),{
+        Some(arg) {
+            return arg
+        },
+        None:() => ic.trap("Error occured while query state data ")
+    })
+    let subAccount:blob = padPrincipalWithZeros(new Uint8Array())
+
+    if(_subAccount.Some != undefined){
+        subAccount = padPrincipalWithZeros( _subAccount.Some)
+    }
+
+    const balance:nat = match(await SynthTokenCanister.icrc1_balance_of({owner:Caller,subaccount:Opt.Some(subAccount)}).call(),{
+        Ok(arg) {
+            return arg
+        },
+        Err(arg) {
+            ic.trap(arg)
+        },
+    })
+
+    if(balance < _debtToRepay) {
+        ic.trap("You do not have sufficient balance to repay the debt")
+    }
+
+    
+    const currentAccumulator:float64 = currentStateData.VaultStateData.currentAccumulatorValue
+
+    const interestPerSecond:float64 = currentStateData.VaultStateData.interestPerSecond
+
+    const timeinSeconds:nat32 = convertNanoToSec(currentLedgerTime) - currentStateData.VaultStateData.lastAccumulatorUpdateTime_seconds
+
+    const newAccumulatorValue:float64 = calculatenewAccumulator(currentAccumulator,interestPerSecond,timeinSeconds)
+
+    const normalisedDebt:float64 = normalizeDebt(_debtToRepay,newAccumulatorValue)
+
+    const updatedNormalisedDebt:float64 = currentVaultData.normalisedDebt - normalisedDebt
+
+    const currentVaultActualDebt:float64 = updatedNormalisedDebt * newAccumulatorValue
+
+    const currentVaultCollateral:float64 = currentVaultData.vaultCurrentCollateral
+
+    const currentCollateralInDollars:float64 = await collateralAmountInDolalr(currentVaultCollateral)
+
+    const LTV:float64 = currentVaultActualDebt/currentCollateralInDollars
+
+}
 $update;
 //Function to get the price  from the oracle 
 export async function getBtcPrice():Promise<string>{
