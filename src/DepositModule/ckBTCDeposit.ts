@@ -165,3 +165,9 @@ function bigNumberToUint8Array(bigNumber:nat):blob {
     }
     return array;
   }
+
+
+$update; 
+export function getTime():nat{
+    return(ic.time())
+}

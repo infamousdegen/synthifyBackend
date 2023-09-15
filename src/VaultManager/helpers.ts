@@ -1,4 +1,4 @@
-import { float32, nat,nat32,float64 } from "azle";
+import { float32, nat,nat32,float64, nat64 } from "azle";
 
 // const pow = (base:nat32, exponent:nat32) => base ** exponent;
 

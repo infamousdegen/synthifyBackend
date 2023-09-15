@@ -1,4 +1,4 @@
-import {Principal, Record,float64,nat,Vec,Alias, Service, serviceUpdate, Variant, blob} from "azle"
+import {Principal, Record,float64,nat,Vec,Alias, Service, serviceUpdate, Variant, blob,nat32} from "azle"
 
 
 export type VaultMetadata = Record<{
@@ -7,13 +7,14 @@ export type VaultMetadata = Record<{
 }>
 
 export type VaultStateData = Record<{
-    collaterisationRatio:float64,
     interestFeePercentage:float64,
     CollateralPrincipal:Principal,
     DebtTokenPrincipal:Principal,
     priimary_owner:Principal,
     oracle:Principal,
-    currentAccumulatorValue:float64
+    currentAccumulatorValue:float64,
+    lastAccumulatorUpdateTime_seconds:nat32,
+    interestPerSecond:float64
 }>
 
 export type AdministrativeData = Record<{
@@ -35,6 +36,7 @@ export type IndividualVaultData = Record<{
     primaryOwner:Principal,
     vaultCollaterisationRatio:float64
     vaultCurrentCollateral:float64,
+    vaultLtvRatio:float64
     vaultId:nat,
     //when there is some kind of debt left for this vault then it should be turned into bool
     isActive:boolean,
