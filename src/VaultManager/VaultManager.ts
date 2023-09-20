@@ -112,7 +112,7 @@ export function testInit():Result<string,string>{
         VaultMedata:vaultMetadata,
         VaultStateData:vaultStateData,
         AdministrativeData:administrativeData,
-        vaultCounter:1n,
+        vaultCounter:0n,
         Transactions:tranasactions
 
     }
@@ -120,6 +120,7 @@ export function testInit():Result<string,string>{
     VaultStorage.insert(1n,finalData)
     return Result.Ok<string,string>("Done")
 }
+
 
 
 //this is used to create empty Vault 
@@ -167,7 +168,8 @@ export function createVault(memo:Opt<blob>):nat{
     const UpdateTransaction:Vec<IndividualVaultData> = [...currentState.Transactions,IndiVidiualVaultData]
     const updateVaultData:VaultStorageData = {
         ...currentState,
-        Transactions:UpdateTransaction
+        Transactions:UpdateTransaction,
+        vaultCounter:nextVaultId
     }
     
     VaultStorage.insert(1n,updateVaultData)
@@ -703,6 +705,7 @@ export function calculatenewAccumulator(currentAcumulator:float64,interestPerSec
     return (newAccumulatorValue)
 }
 
+
 $query;
 export function normalizeDebt(debt:float64,newAccumulatorValue:float64):float64{
 
@@ -718,6 +721,15 @@ export function normalizeDebt(debt:float64,newAccumulatorValue:float64):float64{
     // return(debt/newAccumulatorValue)
 }
 
+$query;
+export function getUserVaultIds(account:Principal):Vec<nat>{
+    return(match(UserVaultIdMapping.get(account),{
+        Some(arg) {
+            return(arg)
+        },
+        None:() => ic.trap("Not user found")
+    }))
+}
 function convertNanoToSec(nanoseconds:nat):nat32 {
     return Number(nanoseconds / 1_000_000_000n);
   }

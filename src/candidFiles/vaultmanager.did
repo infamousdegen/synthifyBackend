@@ -44,6 +44,7 @@ service : () -> {
   calculatenewAccumulator : (float64, float64, nat32) -> (float64) query;
   createVault : (opt vec nat8) -> (nat);
   getBtcPrice : () -> (text);
+  getUserVaultIds : (principal) -> (vec nat) query;
   getVaultDetails : (nat) -> (IndividualVaultData) query;
   icrc1_balance_of : (Account) -> (nat) query;
   icrc1_decimals : () -> (nat) query;
