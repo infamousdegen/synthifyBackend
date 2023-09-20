@@ -192,9 +192,9 @@ export function validate_transfer(
     currentLedgerTime:nat
 ):ValidateTransferResult{
 
-    const Caller: Account = from
+    const Caller: Account = padSubAccount(from)
 
-    const Spender:Account = args.to;
+    const Spender:Account = padSubAccount(args.to);
 
     const finalCreateTime = args.created_at_time.Some ? args.created_at_time.Some : currentLedgerTime
 
@@ -218,7 +218,7 @@ export function validate_transfer(
         }
     }
 
-    if(is_subaccount_valid(from.subaccount)!== true){
+    if(is_subaccount_valid(Caller.subaccount)!== true){
         return {
             err:
             {
@@ -280,7 +280,7 @@ export function validate_transfer(
             };
         }
     }
-
+            if(is_minting_account(Caller.owner)!==true )
             if((isValidBalance(Caller,currentFee) !== true)){
                 return{
                     err:

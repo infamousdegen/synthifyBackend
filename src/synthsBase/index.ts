@@ -15,4 +15,4 @@ export {icrc1_symbol,
 export {constructor,testingTokenState,testingAllowance,getCurrentState,items,keys,values,testingBalance} from "./init"
 
 export {icrc2_approve,testingFee} from "./Update/approveMain"
-export {icrc2_transfer_from} from "./Update/transferMain"
+export {icrc2_transfer_from,icrc1_transfer} from "./Update/transferMain"

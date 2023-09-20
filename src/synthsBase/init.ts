@@ -101,8 +101,14 @@ export function testingTokenState():string{
                 url: 'https://github.com/dfinity/ICRC-1/tree/main/standards/ICRC-2'
             },
         ],
-        minting_account: Opt.None,
-        primary_account: Opt.None,
+        minting_account:Opt.Some({
+            owner:Principal.fromText("avqkn-guaaa-aaaaa-qaaea-cai"),
+            subaccount:Opt.None
+        }),
+        primary_account: Opt.Some({
+            owner:Principal.fromText("2vxsx-fae"),
+            subaccount:Opt.None
+        }),
         name: "Token",
         permitted_drift_nanos: 86_400_000_000_000n,
         symbol: "symbol",
@@ -118,12 +124,8 @@ export function testingTokenState():string{
 }
 
 $update;
-export function testingBalance(amount:nat):string{
-    let account:Account = {
-        owner: Principal.fromText("giy3c-khloq-v2zio-tjs3r-evrzf-7fzm4-c3zlh-227wl-vburm-4zbcp-lqe"),
-        subaccount: Opt.None
-        
-    }
+export function testingBalance(_account:Account,amount:nat):string{
+    let account:Account = _account
 
     account = padSubAccount(account)
     AccountBalance.insert(account,amount)

@@ -1,3 +1,6 @@
+type Account = record { owner : principal; subaccount : opt vec nat8 };
+type Allowance = record { allowance : nat; expires_at : opt nat64 };
+type AllowanceArgs = record { account : Account; spender : Account };
 type ICRCTransferError = variant {
   GenericError : _InlineICRCTransferErrorGenericError;
   TemporarilyUnavailable;
@@ -9,7 +12,9 @@ type ICRCTransferError = variant {
   InsufficientFunds : _InlineICRCTransferErrorInsufficientFunds;
 };
 type ManualReply = variant { Ok : nat; Err : ICRCTransferError };
-type ManualReply_1 = variant { Ok : vec UtxoStatus; Err : UpdateBalanceError };
+type ManualReply_1 = variant { Ok : nat; Err : ICRCTransferError };
+type ManualReply_2 = variant { Ok : vec UtxoStatus; Err : UpdateBalanceError };
+type SupportedStandard = record { url : text; name : text };
 type UpdateBalanceError = variant {
   GenericError : _InlineUpdateBalanceErrorGenericError;
   TemporarilyUnavailable : text;
@@ -27,6 +32,7 @@ type UtxoStatus = variant {
   Minted : _InlineUtxoStatusMinted;
   Checked : Utxo;
 };
+type Value = variant { Int : int; Nat : nat; Blob : vec nat8; Text : text };
 type _InlineICRCTransferErrorBadBurn = record { min_burn_amount : nat };
 type _InlineICRCTransferErrorBadFee = record { expected_fee : nat };
 type _InlineICRCTransferErrorCreatedInFuture = record { ledger_time : nat64 };
@@ -53,8 +59,22 @@ type _InlineUtxoStatusMinted = record {
 service : () -> {
   getBalance : (principal) -> (nat);
   getBtcDepositAddress : () -> (text);
+  getCaller : () -> (principal) query;
   getTime : () -> (nat);
-  transfer : (text, nat) -> (ManualReply);
-  transferToVault : (principal, nat, principal, nat) -> (ManualReply);
-  updateBalance : () -> (ManualReply_1);
+  getUint8array : (principal) -> (vec nat8) query;
+  icrc1_balance_of : (Account) -> (nat) query;
+  icrc1_decimals : () -> (nat) query;
+  icrc1_fee : () -> (nat) query;
+  icrc1_metadata : () -> (vec record { text; Value }) query;
+  icrc1_minting_account : () -> (opt Account) query;
+  icrc1_name : () -> (text) query;
+  icrc1_supported_standards : () -> (vec SupportedStandard) query;
+  icrc1_symbol : () -> (text) query;
+  icrc1_total_supply : () -> (nat) query;
+  icrc2_allowance : (AllowanceArgs) -> (Allowance) query;
+  mintTokens : (Account, nat) -> (ManualReply);
+  transfer : (Account, nat) -> (ManualReply_1);
+  transferToVault : (principal, nat, principal, nat) -> (ManualReply_1);
+  updateBalance : () -> (ManualReply_2);
+  updateVaultManagerAddress : (principal) -> (text);
 }

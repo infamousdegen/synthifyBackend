@@ -13,7 +13,7 @@ import {
 import { validate_transfer, validate_transfer_from } from '../validations';
 import { TokenState } from '../storage/storage';
 
-import { is_minting_account } from '../helper';
+import { is_minting_account, padSubAccount } from '../helper';
 
 import { handle_mint } from '../transfers/mint';
 import { handle_burn } from '../transfers/burn';
@@ -23,10 +23,10 @@ import { icrc2_allowance } from '../query/queryFunctions';
 $update
 
 export function icrc1_transfer(args: TransferArgs): Result<nat,TransferError> {
-    const from: Account = {
+    const from: Account = padSubAccount({
         owner: ic.caller(),
         subaccount: args.from_subaccount
-    };
+    });
 
 
     let currentTokenState:State;
@@ -62,7 +62,7 @@ export function icrc1_transfer(args: TransferArgs): Result<nat,TransferError> {
     if (to_is_minting_account === true) {
         return handle_burn(args, from);
     }
-
+    ic.trap("final handle transfer")
     return handle_transfer(args, from);
 }
 
@@ -71,14 +71,14 @@ export function icrc1_transfer(args: TransferArgs): Result<nat,TransferError> {
 
 
 $update;
-export function icrc2_transfer_from(caller:Account,args:TransferFromArgs): Result<nat,TransferFromError>{
-    // const Caller:Account = {
-    //     owner: ic.caller(),
-    //     subaccount:args.spender_subaccount
+export function icrc2_transfer_from(args:TransferFromArgs): Result<nat,TransferFromError>{
+    const Caller:Account = padSubAccount({
+        owner: ic.caller(),
+        subaccount:args.spender_subaccount
 
-    // }
+    })
 
-    const Caller:Account = caller
+
 
 
 

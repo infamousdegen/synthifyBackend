@@ -29,8 +29,10 @@ export function handle_mint(args: TransferArgs, from: Opt<Account>): TransferRes
     })
 
     const newTransaction:Transaction = {
-        args: Opt.Some( args),
-        fee: 0n,
+        args: {
+            TransferArgs:args
+        },
+        fee: 10n,
         from: from,
         kind: {
             Mint:null

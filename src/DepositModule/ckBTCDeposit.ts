@@ -21,9 +21,11 @@ import {ICRC,ICRCTransferError} from 'azle/canisters/icrc'
 
 
 import { UpdateBalanceResult,Minter } from './minter';
+import { Account } from '../synthsBase/types';
+import { padSubAccount } from '../synthsBase/helper';
 
 const ckBTC = new ICRC(
-    Principal.fromText("mxzaz-hqaaa-aaaar-qaada-cai")
+    Principal.fromText("be2us-64aaa-aaaaa-qaabq-cai")
 );
 
 const minter = new Minter(
@@ -31,7 +33,6 @@ const minter = new Minter(
 );
 
 let VaultManagerAddress:Principal
-
 $update;
 export async function getBalance(of:Principal): Promise<nat> {
     const result = await ckBTC
@@ -87,7 +88,7 @@ export async function getBtcDepositAddress(): Promise<string> {
 // @todo: This method should not be exposed to everyone 
 $update;
 export async function transfer(
-    to: string,
+    to: Account,
     amount: nat
 ): Promise<Variant<{ Ok: nat; Err: ICRCTransferError }>> {
     const result = await ckBTC
@@ -95,14 +96,9 @@ export async function transfer(
             from_subaccount: Opt.Some(
                 padPrincipalWithZeros(ic.caller().toUint8Array())
             ),
-            to: {
-                owner: ic.id(),
-                subaccount: Opt.Some(
-                    padPrincipalWithZeros(Principal.fromText(to).toUint8Array())
-                )
-            },
+            to: padSubAccount(to),
             amount,
-            fee: Opt.None,
+            fee: Opt.Some(10n),
             memo: Opt.None,
             created_at_time: Opt.None
         })
@@ -113,41 +109,73 @@ export async function transfer(
         Err: (err) => ic.trap(err)
     });
 }
+// from:Principal,vaultId:nat,_VaultManagerAddress:Principal,_amount:nat
+//Promise<Result<nat,ICRCTransferError>
 
 $update;
-export async function transferToVault(from:Principal,vaultId:nat,_VaultManagerAddress:Principal,amount:nat):Promise<Result<nat,ICRCTransferError>> 
+export async function transferToVault(from:Principal,vaultId:nat,_VaultManagerAddress:Principal,_amount:nat  ):Promise<Result<nat,ICRCTransferError>>
 {
-    if(ic.caller() != VaultManagerAddress){
+    if(ic.caller().toString() != VaultManagerAddress.toString()){
         ic.trap("Only Vault Can call this function")
     }
+
+
     const subaccount:blob = bigNumberToUint8Array(vaultId)
+    const toAccount:Account = {
+        owner:_VaultManagerAddress,
+        subaccount:Opt.Some(subaccount)
+    }
+    
     const result = await ckBTC
         .icrc1_transfer({
             from_subaccount: Opt.Some(
                 padPrincipalWithZeros(from.toUint8Array())
             ),
-            to: {
-                owner: _VaultManagerAddress,
-                subaccount: Opt.Some(
-                    padPrincipalWithZeros(subaccount)
-                )
-            },
-            amount,
-            fee: Opt.None,
+            to: padSubAccount(toAccount),
+            amount:_amount,
+            fee: Opt.Some(10n),
             memo: Opt.None,
             created_at_time: Opt.None
         })
         .call();
 
-        return match(result, {
-            Ok: (ok) => ok,
-            Err: (err) => ic.trap(err)
+        const calResult =  match(result, {
+            Ok: (ok) =>  (ok),
+            Err: (err) => ic.trap(`Call Result Error ${err}`)
         });
+
+
+        return(match(calResult,{
+            Ok(arg) {
+                return Result.Ok<nat,ICRCTransferError>(arg)
+            },
+            Err(arg) {
+                return Result.Err<nat,ICRCTransferError>(arg)
+            },
+        }))
+
     
 }
 
 
+$update;
+export async function  mintTokens(account:Account,amount:nat):Promise<Variant<{ Ok: nat; Err: ICRCTransferError }>> {
+    const result = await ckBTC
+    .icrc1_transfer({
+        from_subaccount: Opt.None,
+        to: account,
+        amount:amount,
+        fee: Opt.Some(10n),
+        memo: Opt.None,
+        created_at_time: Opt.None
+    })
+    .call();
 
+return match(result, {
+    Ok: (ok) => ok,
+    Err: (err) => ic.trap(err)
+});
+}
 
 function padPrincipalWithZeros(blob: blob): blob {
     let newUin8Array = new Uint8Array(32);
@@ -170,4 +198,20 @@ function bigNumberToUint8Array(bigNumber:nat):blob {
 $update; 
 export function getTime():nat{
     return(ic.time())
+}
+
+$query;
+export function getCaller():Principal{
+    return(ic.caller())
+}
+
+$query;
+export function getUint8array(account:Principal):blob {
+    return(padPrincipalWithZeros(account.toUint8Array()))
+}
+
+$update;
+export function updateVaultManagerAddress(address:Principal):string{
+    VaultManagerAddress = address
+    return("ok")
 }

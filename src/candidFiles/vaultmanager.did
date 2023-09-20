@@ -1,0 +1,82 @@
+type Account = record { owner : principal; subaccount : opt vec nat8 };
+type AdministrativeData = record {
+  priimary_owner : principal;
+  guardians : vec principal;
+};
+type Allowance = record { allowance : nat; expires_at : opt nat64 };
+type AllowanceArgs = record { account : Account; spender : Account };
+type ICRCTransferError = variant {
+  GenericError : _InlineICRCTransferErrorGenericError;
+  TemporarilyUnavailable;
+  BadBurn : _InlineICRCTransferErrorBadBurn;
+  Duplicate : _InlineICRCTransferErrorDuplicate;
+  BadFee : _InlineICRCTransferErrorBadFee;
+  CreatedInFuture : _InlineICRCTransferErrorCreatedInFuture;
+  TooOld;
+  InsufficientFunds : _InlineICRCTransferErrorInsufficientFunds;
+};
+type IndividualVaultData = record {
+  vaultLtvRatio : float64;
+  normalisedDebt : float64;
+  primaryOwner : principal;
+  memo : opt vec nat8;
+  vaultCurrentCollateral : float64;
+  vaultCollaterisationRatio : float64;
+  isActive : bool;
+  VaultCreationTime : nat;
+  vaultId : nat;
+};
+type ManualReply = variant { Ok : nat; Err : ICRCTransferError };
+type SupportedStandard = record { url : text; name : text };
+type Value = variant { Int : int; Nat : nat; Blob : vec nat8; Text : text };
+type VaultMetadata = record { DebtTokeName : text; CollateralName : text };
+type VaultStateData = record {
+  DebtTokenPrincipal : principal;
+  priimary_owner : principal;
+  interestPerSecond : float64;
+  oracle : principal;
+  currentAccumulatorValue : float64;
+  lastAccumulatorUpdateTime_seconds : nat32;
+  CollateralPrincipal : principal;
+  interestFeePercentage : float64;
+};
+type VaultStorageData = record {
+  VaultStateData : VaultStateData;
+  Transactions : vec IndividualVaultData;
+  VaultMedata : VaultMetadata;
+  vaultCounter : nat;
+  AdministrativeData : AdministrativeData;
+};
+type _AzleResult = variant { Ok : text; Err : text };
+type _InlineICRCTransferErrorBadBurn = record { min_burn_amount : nat };
+type _InlineICRCTransferErrorBadFee = record { expected_fee : nat };
+type _InlineICRCTransferErrorCreatedInFuture = record { ledger_time : nat64 };
+type _InlineICRCTransferErrorDuplicate = record { duplicate_of : nat };
+type _InlineICRCTransferErrorGenericError = record {
+  message : text;
+  error_code : nat;
+};
+type _InlineICRCTransferErrorInsufficientFunds = record { balance : nat };
+service : () -> {
+  addCollateral : (nat, nat) -> (ManualReply);
+  borrow : (nat, nat) -> (nat);
+  calculatenewAccumulator : (float64, float64, nat32) -> (float64) query;
+  createVault : (opt vec nat8) -> (nat);
+  getBtcPrice : () -> (text);
+  getVaultDetails : (nat) -> (IndividualVaultData) query;
+  icrc1_balance_of : (Account) -> (nat) query;
+  icrc1_decimals : () -> (nat) query;
+  icrc1_fee : () -> (nat) query;
+  icrc1_metadata : () -> (vec record { text; Value }) query;
+  icrc1_minting_account : () -> (opt Account) query;
+  icrc1_name : () -> (text) query;
+  icrc1_supported_standards : () -> (vec SupportedStandard) query;
+  icrc1_symbol : () -> (text) query;
+  icrc1_total_supply : () -> (nat) query;
+  icrc2_allowance : (AllowanceArgs) -> (Allowance) query;
+  init : (VaultStorageData) -> (_AzleResult);
+  normalizeDebt : (float64, float64) -> (float64) query;
+  repayDebt : (nat, nat, opt vec nat8) -> (nat);
+  testInit : () -> (_AzleResult);
+  withdrawCollateral : (nat, nat, Account) -> (float64);
+}

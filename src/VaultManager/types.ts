@@ -1,4 +1,4 @@
-import {Principal, Record,float64,nat,Vec,Alias, Service, serviceUpdate, Variant, blob,nat32} from "azle"
+import {Principal, Record,float64,nat,Vec,Alias, Service, serviceUpdate, Variant, blob,nat32,Opt} from "azle"
 
 
 export type VaultMetadata = Record<{
@@ -40,7 +40,7 @@ export type IndividualVaultData = Record<{
     vaultId:nat,
     //when there is some kind of debt left for this vault then it should be turned into bool
     isActive:boolean,
-    memo:blob
+    memo:Opt<blob>
 
 }>
 
