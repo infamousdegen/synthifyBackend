@@ -109,9 +109,9 @@ export function testingTokenState():string{
             owner:Principal.fromText("2vxsx-fae"),
             subaccount:Opt.None
         }),
-        name: "Token",
+        name: "synthetis Usd",
         permitted_drift_nanos: 86_400_000_000_000n,
-        symbol: "symbol",
+        symbol: "synUsd",
         total_supply:0n,
         transaction_window_nanos:86_400_000_000_000n,
         currencyKey: new Uint8Array(),

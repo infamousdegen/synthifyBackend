@@ -195,13 +195,14 @@ export function getVaultDetails(vaultId:nat):IndividualVaultData{
 //@note: Vault collaterisation rate is not update only the vault ltv ratio is update 
 //@todo: Add the transaction to transactionld 
 //Todo; Vault collateral should be in how much in $value not in ckbtc amount
+//Promise<ICRCTransferError>
 $update;
-export async function addCollateral(_vaultId:nat,collateralAmount:nat):Promise<Result<nat,ICRCTransferError>>{
+export async function addCollateral(_vaultId:nat,collateralAmount:nat):Promise<Result<nat,string>>{
     const Caller:Principal = ic.caller()
     
     const decimalAdjustCollateral:float64 = adjustDecimals(collateralAmount)
 
-    const collateralAmountInDollars = await collateralAmountInDolalr(decimalAdjustCollateral)
+    
 
     const currentLedgerTime = ic.time()
 
@@ -228,12 +229,13 @@ export async function addCollateral(_vaultId:nat,collateralAmount:nat):Promise<R
         },
 
     })
+
     //@todo: Test this not sure if this comparison is correct
     //1) Should compare it without decimal adjusting it 
     //2) Should I compatre the dollar value 
     //3) SHould I comapre with decimal adjust it 
     if(Balance<collateralAmount){
-        ic.trap("You do not have sufficient balance please deposit using Deposit Page")
+        ic.trap(`You do not have sufficient balance please deposit using Deposit Page ${Balance}`)
     }
 
     const result = match(await DepositModuleCanister.transferToVault(ic.caller(),_vaultId,ic.id(),collateralAmount).call(),{
@@ -246,16 +248,20 @@ export async function addCollateral(_vaultId:nat,collateralAmount:nat):Promise<R
     })
 
 
-     return (match(result,{
+     const finalCallResult =  (match(result,{
         Ok(arg) {
+            // ic.trap("inside okay statement ")
             return (Result.Ok<nat,ICRCTransferError>(arg))
         },
         Err(arg) {
             ic.trap("inside error statement")
-            return(Result.Err<nat,ICRCTransferError>(arg))
-            ic.trap(` error in result = ${JSON.stringify(arg,replacer)}`)
+            return Result.Err<nat,ICRCTransferError>(arg)
         },
     }) )
+
+    if('Err' in finalCallResult){
+        ic.trap("Error occured in call token transfer  ")
+    }
 
 
     const currentAccumulator:float64 = currentStateData.VaultStateData.currentAccumulatorValue
@@ -270,6 +276,7 @@ export async function addCollateral(_vaultId:nat,collateralAmount:nat):Promise<R
 
     const vaultUpdatedCollateral:float64 = currentVaultData.vaultCurrentCollateral + decimalAdjustCollateral
 
+    const collateralAmountInDollars = await collateralAmountInDolalr(vaultUpdatedCollateral)
     const updatedLtv:float64 = currentVaultActualDebt / collateralAmountInDollars
 
     //@sanity check to make sure ltv was update // 0.8 = 80%

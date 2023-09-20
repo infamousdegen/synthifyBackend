@@ -5,16 +5,6 @@ type AdministrativeData = record {
 };
 type Allowance = record { allowance : nat; expires_at : opt nat64 };
 type AllowanceArgs = record { account : Account; spender : Account };
-type ICRCTransferError = variant {
-  GenericError : _InlineICRCTransferErrorGenericError;
-  TemporarilyUnavailable;
-  BadBurn : _InlineICRCTransferErrorBadBurn;
-  Duplicate : _InlineICRCTransferErrorDuplicate;
-  BadFee : _InlineICRCTransferErrorBadFee;
-  CreatedInFuture : _InlineICRCTransferErrorCreatedInFuture;
-  TooOld;
-  InsufficientFunds : _InlineICRCTransferErrorInsufficientFunds;
-};
 type IndividualVaultData = record {
   vaultLtvRatio : float64;
   normalisedDebt : float64;
@@ -26,7 +16,7 @@ type IndividualVaultData = record {
   VaultCreationTime : nat;
   vaultId : nat;
 };
-type ManualReply = variant { Ok : nat; Err : ICRCTransferError };
+type ManualReply = variant { Ok : nat; Err : text };
 type SupportedStandard = record { url : text; name : text };
 type Value = variant { Int : int; Nat : nat; Blob : vec nat8; Text : text };
 type VaultMetadata = record { DebtTokeName : text; CollateralName : text };
@@ -48,15 +38,6 @@ type VaultStorageData = record {
   AdministrativeData : AdministrativeData;
 };
 type _AzleResult = variant { Ok : text; Err : text };
-type _InlineICRCTransferErrorBadBurn = record { min_burn_amount : nat };
-type _InlineICRCTransferErrorBadFee = record { expected_fee : nat };
-type _InlineICRCTransferErrorCreatedInFuture = record { ledger_time : nat64 };
-type _InlineICRCTransferErrorDuplicate = record { duplicate_of : nat };
-type _InlineICRCTransferErrorGenericError = record {
-  message : text;
-  error_code : nat;
-};
-type _InlineICRCTransferErrorInsufficientFunds = record { balance : nat };
 service : () -> {
   addCollateral : (nat, nat) -> (ManualReply);
   borrow : (nat, nat) -> (nat);
