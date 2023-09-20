@@ -121,7 +121,28 @@ export function testInit():Result<string,string>{
     return Result.Ok<string,string>("Done")
 }
 
+$update;
+export function resetVault():string{
+    const currentState:VaultStorageData =  match(VaultStorage.get(1n),{
+        Some:(args) => {
+            return(args)
+        },
+        None:() => ic.trap("Some error occured1")
+    })
 
+    const updateVaultData:VaultStorageData = {
+        ...currentState,
+        vaultCounter:0n
+    }
+    
+    VaultStorage.insert(1n,updateVaultData)
+
+    const keys:Vec<Principal> = UserVaultIdMapping.keys()
+    for(const k of keys){
+        UserVaultIdMapping.remove(k)
+    }
+    return("done")
+}
 
 //this is used to create empty Vault 
 //@param: For this user to enter any blob if necessary
@@ -749,9 +770,3 @@ function bigNumberToUint8Array(bigNumber:nat):blob {
     return array;
   }
 
-  function replacer( value) {
-    if (typeof value === 'bigint') {
-      return value.toString();  // convert BigInt to string
-    }
-    return value;
-  }

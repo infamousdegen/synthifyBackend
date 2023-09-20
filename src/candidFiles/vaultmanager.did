@@ -59,6 +59,7 @@ service : () -> {
   init : (VaultStorageData) -> (_AzleResult);
   normalizeDebt : (float64, float64) -> (float64) query;
   repayDebt : (nat, nat, opt vec nat8) -> (nat);
+  resetVault : () -> (text);
   testInit : () -> (_AzleResult);
   withdrawCollateral : (nat, nat, Account) -> (float64);
 }
