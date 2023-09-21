@@ -27,7 +27,18 @@ type IndividualVaultData = record {
   vaultId : nat;
 };
 type ManualReply = variant { Ok : nat; Err : ICRCTransferError };
+type ManualReply_1 = variant { Ok : nat; Err : TransferError };
 type SupportedStandard = record { url : text; name : text };
+type TransferError = variant {
+  GenericError : _InlineTransferErrorGenericError;
+  TemporarilyUnavailable;
+  BadBurn : _InlineTransferErrorBadBurn;
+  Duplicate : _InlineTransferErrorDuplicate;
+  BadFee : _InlineTransferErrorBadFee;
+  CreatedInFuture : _InlineTransferErrorCreatedInFuture;
+  TooOld;
+  InsufficientFunds : _InlineTransferErrorInsufficientFunds;
+};
 type Value = variant { Int : int; Nat : nat; Blob : vec nat8; Text : text };
 type VaultMetadata = record { DebtTokeName : text; CollateralName : text };
 type VaultStateData = record {
@@ -57,9 +68,18 @@ type _InlineICRCTransferErrorGenericError = record {
   error_code : nat;
 };
 type _InlineICRCTransferErrorInsufficientFunds = record { balance : nat };
+type _InlineTransferErrorBadBurn = record { min_burn_amount : nat };
+type _InlineTransferErrorBadFee = record { expected_fee : nat };
+type _InlineTransferErrorCreatedInFuture = record { ledger_time : nat64 };
+type _InlineTransferErrorDuplicate = record { duplicate_of : nat };
+type _InlineTransferErrorGenericError = record {
+  message : text;
+  error_code : nat;
+};
+type _InlineTransferErrorInsufficientFunds = record { balance : nat };
 service : () -> {
   addCollateral : (nat, nat) -> (ManualReply);
-  borrow : (nat, nat) -> (nat);
+  borrow : (principal, nat, nat) -> (ManualReply_1);
   calculatenewAccumulator : (float64, float64, nat32) -> (float64) query;
   createVault : (opt vec nat8) -> (nat);
   getBtcPrice : () -> (text);

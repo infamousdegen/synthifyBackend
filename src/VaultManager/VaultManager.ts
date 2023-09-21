@@ -38,7 +38,7 @@ class DepositModule extends Service {
 
 class SynthMinter extends Service {
     @serviceUpdate
-    mintToken:(amount:nat,account:Principal,subAccount:blob) => CallResult<Result<nat,TransferError>>
+    mintToken:(amount:nat,account:Account,memo:Opt<blob>) => CallResult<Result<nat,TransferError>>
     @serviceUpdate
     burnToken:(amount:nat) => CallResult<Result<nat,TransferError>>
 }
@@ -348,10 +348,10 @@ export async function addCollateral(_vaultId:nat,collateralAmount:nat):Promise<R
 
 //Promise<nat>
 $update;
-export async function borrow(_vaultId:nat,__debt:nat):Promise<nat>{
+export async function borrow(Caller:Principal,_vaultId:nat,__debt:nat):Promise<Result<nat,TransferError>>{
 
 
-    const Caller:Principal = ic.caller()
+    // const Caller:Principal = ic.caller()
     const debt = adjustDecimals(__debt)
     const currentLedgerTime = ic.time()
     //checking whether the vaultId exist 
@@ -398,7 +398,12 @@ export async function borrow(_vaultId:nat,__debt:nat):Promise<nat>{
     }
 
     const subAccount:blob = padPrincipalWithZeros(new Uint8Array())
-    const result = match (await SynthMinterCanister.mintToken(__debt,Caller,subAccount).call(),{
+
+    const account:Account = {
+        owner:Caller,
+        subaccount:Opt.None
+    }
+    const result = match (await SynthMinterCanister.mintToken(__debt,account,Opt.None).call(),{
         Ok(arg) {
             return arg
         },
@@ -439,7 +444,7 @@ export async function borrow(_vaultId:nat,__debt:nat):Promise<nat>{
 
     VaultStorage.insert(1n,updateVaultStorageData)
 
-    return(__debt)
+    return(Result.Ok<nat,TransferError>(__debt))
 
 }
 
