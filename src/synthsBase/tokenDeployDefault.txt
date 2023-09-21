@@ -1,0 +1,39 @@
+'( record {               
+    name = "Synthetic USD";                         
+    symbol = "SynUsd";                           
+    decimals = 8;                                           
+    fee = 10;
+    permitted_drift_nanos = 86_400_000_000_000;
+    transaction_window_nanos = 86_400_000_000_000;                                                                                   
+    minting_account = (opt record {
+        owner = principal "2vxsx-fae";
+        subaccount = null;
+    
+    
+    });
+
+    primary_account = (opt record {
+        owner = principal "2vxsx-fae";
+        subaccount = null;
+    });
+})'
+
+
+
+
+
+
+
+
+
+
+
+    initial_balances = vec {                                
+        record {                                            
+            record {                                        
+                owner = principal "2hfao-epw3w-htxiz-lg52d-kawgm-zw4x3-tv3xm-jeeru-yqx6a-tmw5u-3ae";   
+                subaccount = null;                          
+            };                                              
+            100000000                                    
+        }                                                   
+    }; 

@@ -21,7 +21,6 @@ import { handle_transfer } from '../transfers/transfer';
 import { icrc2_allowance } from '../query/queryFunctions';
 
 $update
-
 export function icrc1_transfer(args: TransferArgs): Result<nat,TransferError> {
     const from: Account = padSubAccount({
         owner: ic.caller(),
@@ -42,9 +41,13 @@ export function icrc1_transfer(args: TransferArgs): Result<nat,TransferError> {
             return({TemporarilyUnavailable:null})
         }
     })
+    //@ts-ignore
+    const currentTransactionCounter = currentTokenState.transactions.length
 
     //@ts-ignore
     const validate_transfer_result = validate_transfer(args, from,currentTokenState,currentLedgerTime);
+
+
 
     if ( validate_transfer_result.err) {
         return {
@@ -62,7 +65,6 @@ export function icrc1_transfer(args: TransferArgs): Result<nat,TransferError> {
     if (to_is_minting_account === true) {
         return handle_burn(args, from);
     }
-    ic.trap("final handle transfer")
     return handle_transfer(args, from);
 }
 
@@ -117,9 +119,8 @@ export function icrc2_transfer_from(args:TransferFromArgs): Result<nat,TransferF
     // }
 
 
-
-
-    return(Result.Ok<nat,TransferFromError>(args.amount))
+    //@ts-ignore
+    return(Result.Ok<nat,TransferFromError>(currentTokenState.transactions.length))
 
 
 

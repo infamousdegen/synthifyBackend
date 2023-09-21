@@ -33,17 +33,14 @@ export type CurrencyKey  = Alias<blob>;
 
 
 export  type InitArgs = Record<{
-    decimal:nat,
+    decimal:nat8,
     fee: nat;
-    metadata: Metadatum;
     minting_account: Opt<Account>;
     primary_account: Opt<Account>;
     name: string;
     permitted_drift_nanos: nat64;
-    supported_standards: Vec<SupportedStandard>;
     symbol: string;
     transaction_window_nanos: nat64;
-    currencyKey: CurrencyKey
 }>;
 
 export type Value = Variant<{
@@ -61,7 +58,7 @@ export type Metadatum = Alias<Vec<Tuple<[string, Value]>>>;
 
 export type State = Record<{
 
-    decimals: nat;
+    decimals: nat8;
     fee: nat;
     metadata: Metadatum;
     minting_account: Opt<Account>;
@@ -73,7 +70,6 @@ export type State = Record<{
     total_supply: nat;
     transactions: Vec<Transaction>;
     transaction_window_nanos: nat64;
-    currencyKey:CurrencyKey
 }>;
 
 

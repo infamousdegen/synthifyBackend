@@ -1,5 +1,5 @@
 import { AccountBalance,TokenState,AllowanceStorage } from "../storage/storage";
-import { $query,match,nat,Result,Opt,$update,blob,int,Vec, Tuple,Record,ic } from "azle";
+import { $query,match,nat,Result,Opt,$update,blob,int,Vec, Tuple,Record,ic,nat8 } from "azle";
 import { Account,Metadatum,SupportedStandard,AllowanceArgs,AllowanceKey, Allowance, State,AllowanceStorageData } from "../types";
 
 import { padSubAccount } from "../helper";
@@ -29,7 +29,7 @@ export function icrc1_symbol(): string{
 }
 
 $query;
-export function icrc1_decimals(): nat{
+export function icrc1_decimals(): nat8{
     return(match(TokenState.get(1n),{
         Some: (arg) =>{
             return (arg.decimals)
@@ -90,8 +90,10 @@ $query
 export function icrc1_balance_of(Account:Account): nat{
 
     Account = padSubAccount(Account)
+
     return(match(AccountBalance.get(Account),{
         Some: (arg) =>{
+            
             return (arg)
         },
         //@note: Returns balance of 0 if that account is not found in the storage 
@@ -136,6 +138,15 @@ export function icrc2_allowance(allowance_args:AllowanceArgs):Allowance{
    })) 
 }
 
+$query;
+export function testPadAccount(subAccount:Opt<blob>):Account {
+    const Caller:Account = {
+        owner:ic.caller(),
+        subaccount:subAccount
+    }
+
+    return(Caller)
+}
 
 
 

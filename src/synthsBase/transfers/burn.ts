@@ -63,7 +63,8 @@ export function handle_burn(args: TransferArgs , from: Account): TransferResult 
     AccountBalance.insert(args.to,newBalance)
 
     const transfer_result: TransferResult = {
-        Ok: args.amount
+         //@ts-ignore
+        Ok: BigInt(currentTokenState.transactions.length)
     };
 
     return transfer_result;

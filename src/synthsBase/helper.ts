@@ -8,7 +8,7 @@ import { icrc1_balance_of } from "./query/queryFunctions";
 
 // Validating whether the subAccount is of 32 bytes
 export function is_subaccount_valid(subaccount: Opt<Subaccount>): boolean {
-    return subaccount === null || subaccount.Some?.length === 32;
+    return subaccount.Some === null || subaccount.Some?.length === 32 || subaccount.Some == undefined;
 }
 
 export function is_memo_valid(subaccount: Opt<Subaccount>): boolean {
@@ -30,13 +30,12 @@ export function padPrincipalWithZeros(blob: blob): blob {
 
 export function padSubAccount(account:Account):Account {
     let paddedAccount:Account
-    if(account.subaccount.Some){
+    if(account.subaccount.Some!== undefined ){
         const subAccountArray = padPrincipalWithZeros(account.subaccount.Some)
         paddedAccount = {...account,subaccount:Opt.Some(subAccountArray)}
     }
     else{
-        const subAccountArray = padPrincipalWithZeros(new Uint8Array());
-        paddedAccount = {...account,subaccount:Opt.Some(subAccountArray)}
+        paddedAccount = {...account,subaccount:Opt.None}
 
     }
     return (paddedAccount)
@@ -163,11 +162,11 @@ export function is_anonymous(principal: Principal): boolean {
     return principal.toText() === '2vxsx-fae';
 }
 
-export function isValidBalance(userAccount:Account,fee:nat):boolean{
+export function isValidBalance(userAccount:Account,fee:nat,amountToTransfer:nat):boolean{
 
-    const currentBalance = icrc1_balance_of(userAccount)
+    const currentBalance:nat = icrc1_balance_of(userAccount)
 
-    if(currentBalance< fee){
+    if((currentBalance) < (amountToTransfer+fee)){
         return false
     }
 

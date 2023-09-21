@@ -61,7 +61,8 @@ export function handle_mint(args: TransferArgs, from: Opt<Account>): TransferRes
     AccountBalance.insert(args.to,newBalance)
 
     const transfer_result: TransferResult = {
-        Ok: args.amount
+        //@ts-ignore
+        Ok: BigInt(currentTokenState.transactions.length)
     };
 
     return transfer_result;

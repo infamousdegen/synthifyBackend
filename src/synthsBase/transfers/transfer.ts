@@ -92,7 +92,8 @@ export function handle_transfer(args: TransferArgs, from: Account): TransferResu
 
 
     const transfer_result: TransferResult = {
-        Ok: args.amount
+        //@ts-ignore
+        Ok: BigInt(currentTokenState.transactions.length)
     };
 
     return transfer_result;

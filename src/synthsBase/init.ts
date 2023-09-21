@@ -29,20 +29,17 @@ import { padSubAccount } from './helper';
 
 
 
-$update;
-export  function constructor(Init:InitArgs):string {
+$init;
+export  function constructor(Init:InitArgs):void {
     const State:State = {
         decimals : Init.decimal,
         fee: Init.fee,
         metadata : [
 
-                ['icrc1:decimals', { Nat: Init.decimal }],
+                ['icrc1:decimals', { Nat: BigInt(Init.decimal) }],
                 ['icrc1:fee', { Nat: Init.fee }],
                 ['icrc1:name', { Text: Init.name }],
                 ['icrc1:symbol', { Text: Init.symbol }],
-                ['custom:currencyKey',{Blob: Init.currencyKey}],
-                ...Init.metadata
-
         ],
         minting_account: Init.minting_account,
 
@@ -59,27 +56,25 @@ export  function constructor(Init:InitArgs):string {
                 name: 'ICRC-2',
                 url: 'https://github.com/dfinity/ICRC-1/tree/main/standards/ICRC-2'
             },
-            ...Init.supported_standards
         ],
         symbol: Init.symbol,
 
         
         transaction_window_nanos: Init.transaction_window_nanos,
         //not specified in spec but it is for my project
-        currencyKey: Init.currencyKey,
         total_supply: 0n,
         transactions: [],
     }
     TokenState.insert(1n,State)
 
-    return ("Done")
+
 }
 
 
-$update;
+
 export function testingTokenState():string{
     const state:State = {
-        decimals:8n,
+        decimals:8,
         fee: 10n,
         metadata : [
 
@@ -114,7 +109,6 @@ export function testingTokenState():string{
         symbol: "synUsd",
         total_supply:0n,
         transaction_window_nanos:86_400_000_000_000n,
-        currencyKey: new Uint8Array(),
         transactions : []
 
     }
@@ -123,50 +117,50 @@ export function testingTokenState():string{
     return("Done")
 }
 
-$update;
-export function testingBalance(_account:Account,amount:nat):string{
-    let account:Account = _account
+// $update;
+// export function testingBalance(_account:Account,amount:nat):string{
+//     let account:Account = _account
 
-    account = padSubAccount(account)
-    AccountBalance.insert(account,amount)
-    return("done")
-}
-$update;
-export function testingAllowance():string {
+//     account = padSubAccount(account)
+//     AccountBalance.insert(account,amount)
+//     return("done")
+// }
+// $update;
+// export function testingAllowance():string {
 
-    let from:Account = {
-        owner:Principal.fromText("giy3c-khloq-v2zio-tjs3r-evrzf-7fzm4-c3zlh-227wl-vburm-4zbcp-lqe"),
-        subaccount:Opt.None
-    }
+//     let from:Account = {
+//         owner:Principal.fromText("giy3c-khloq-v2zio-tjs3r-evrzf-7fzm4-c3zlh-227wl-vburm-4zbcp-lqe"),
+//         subaccount:Opt.None
+//     }
     
-    let to:Account = {
-        owner:Principal.fromText("giy3c-khloq-v2zio-tjs3r-evrzf-7fzm4-c3zlh-227wl-vburm-4zbcp-lqe"),
-        subaccount:Opt.None
-    }
+//     let to:Account = {
+//         owner:Principal.fromText("giy3c-khloq-v2zio-tjs3r-evrzf-7fzm4-c3zlh-227wl-vburm-4zbcp-lqe"),
+//         subaccount:Opt.None
+//     }
 
-    from = padSubAccount(from)
-    to = padSubAccount(to)
+//     from = padSubAccount(from)
+//     to = padSubAccount(to)
 
-    const allowanceKey:AllowanceKey = {
-        from:from,
-        to:to
-    }
+//     const allowanceKey:AllowanceKey = {
+//         from:from,
+//         to:to
+//     }
     
-    const allowance:Allowance = {
-        allowance:10_000n,
-        expires_at:Opt.None
-    }
+//     const allowance:Allowance = {
+//         allowance:10_000n,
+//         expires_at:Opt.None
+//     }
 
-    const allowanceStorage:AllowanceStorageData = {
-        Allowance:allowance,
-        fee:0n,
-        created_at_time:ic.time(),
-        memo:Opt.None
-    }
-    AllowanceStorage.insert(allowanceKey,allowanceStorage)
-    return("done")
+//     const allowanceStorage:AllowanceStorageData = {
+//         Allowance:allowance,
+//         fee:0n,
+//         created_at_time:ic.time(),
+//         memo:Opt.None
+//     }
+//     AllowanceStorage.insert(allowanceKey,allowanceStorage)
+//     return("done")
 
-}
+// }
 
 $query;
 export function getCurrentState():State {
@@ -175,17 +169,17 @@ export function getCurrentState():State {
         None:() => ic.trap("Some error occured")
     }))
 }
-$query;
-export function items(): Vec<Tuple<[AllowanceKey, AllowanceStorageData]>> {
-    return AllowanceStorage.items();
-}
+// $query;
+// export function items(): Vec<Tuple<[AllowanceKey, AllowanceStorageData]>> {
+//     return AllowanceStorage.items();
+// }
 
-$query;
-export function keys(): Vec<AllowanceKey> {
-    return AllowanceStorage.keys();
-}
+// $query;
+// export function keys(): Vec<AllowanceKey> {
+//     return AllowanceStorage.keys();
+// }
 
-$query;
-export function values(): Vec<AllowanceStorageData> {
-    return AllowanceStorage.values();
-}
+// $query;
+// export function values(): Vec<AllowanceStorageData> {
+//     return AllowanceStorage.values();
+// }

@@ -45,6 +45,7 @@ export function validate_transfer_from(
 
 
 ):ValidateTransferFromResult{
+    const unPaddedAccount:Account = from 
 
     const Caller: Account = padSubAccount(from)
 
@@ -149,7 +150,7 @@ export function validate_transfer_from(
 
     const FromBalance = icrc1_balance_of(From)
 
-    if((isValidBalance(From,currentFee + args.amount) !== true)){
+    if((isValidBalance(From,currentFee ,args.amount) !== true)){
         return{
             err:
             {
@@ -192,7 +193,7 @@ export function validate_transfer(
     currentLedgerTime:nat
 ):ValidateTransferResult{
 
-    const Caller: Account = padSubAccount(from)
+    const Caller: Account = (from)
 
     const Spender:Account = padSubAccount(args.to);
 
@@ -281,7 +282,7 @@ export function validate_transfer(
         }
     }
             if(is_minting_account(Caller.owner)!==true )
-            if((isValidBalance(Caller,currentFee) !== true)){
+            if((isValidBalance(Caller,currentFee,args.amount) !== true)){
                 return{
                     err:
                     {
@@ -315,7 +316,7 @@ export function validate_approve(
             Approve: null
         };
 
-        const Caller: Account = padSubAccount(from)
+        const Caller: Account = (from)
 
         const Spender: Account = padSubAccount(args.spender);
 
@@ -350,7 +351,7 @@ export function validate_approve(
             }
         }
 
-
+        
         if(is_subaccount_valid(Caller.subaccount)!== true){
             return {
                 err:
@@ -365,7 +366,7 @@ export function validate_approve(
 
 
 
-
+        
     
 
         if (isExpectedAllowance(args.expected_allowance,oldAllowance.allowance) !== true) {
@@ -391,7 +392,6 @@ export function validate_approve(
             }
         }
 
-        
         currentFee = args.fee.Some ?? currentFee;
 
         if(args.expires_at.Some){
@@ -429,7 +429,7 @@ export function validate_approve(
         }
 
 
-        if((isValidBalance(Caller,currentFee) !== true)){
+        if((isValidBalance(Caller,currentFee,args.amount) !== true)){
             return{
                 err:
                 {
@@ -438,6 +438,7 @@ export function validate_approve(
             }
         }
     
+        
 
         const Key:AllowanceKey = {
             from:Caller,
@@ -481,20 +482,20 @@ export function validate_approve(
 
     
 
-        const newCallerBalance = currentCallerBalance - currentFee
+        const newCallerBalance:nat = currentCallerBalance - currentFee
+        
 
         TokenState.insert(1n,newSate)
+        
 
         AllowanceStorage.insert(Key,insertionData)
 
-        AccountBalance.insert(Caller,newCallerBalance)
-        
+        AccountBalance.insert(from,newCallerBalance)
 
         if(currentTokenState.minting_account.Some!== undefined){
             const mintingAccountBalance = icrc1_balance_of(currentTokenState.minting_account.Some)
             AccountBalance.insert(currentTokenState.minting_account.Some,mintingAccountBalance + currentFee)
         }
-
 
         return{
             ok:true
