@@ -13,7 +13,17 @@ export {icrc1_symbol,
     testPadAccount
 } from './query/queryFunctions';
 
-export {constructor,testingTokenState,getCurrentState} from "./init"
+export {constructor,testingTokenState,getCurrentState,updateMinterAccount} from "./init"
 
 export {icrc2_approve} from "./Update/approveMain"
 export {icrc1_transfer} from "./Update/transferMain"
+
+// "synbase":{
+//     "main":"src/synthsBase/index.ts",
+//     "type":"custom",
+//     "build": "npx azle synbase",
+//     "root":"src/synthsBase",
+//     "ts":"src/synthsBase/index.ts",
+//     "candid":"/home/metadev/SynthifyBackend/src/candidFiles/synbase.did",
+//     "wasm":".azle/synbase/synbase.wasm.gz"
+//   },

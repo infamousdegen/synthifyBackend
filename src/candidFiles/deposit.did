@@ -73,6 +73,7 @@ service : () -> {
   icrc1_total_supply : () -> (nat) query;
   icrc2_allowance : (AllowanceArgs) -> (Allowance) query;
   mintTokens : (Account, nat) -> (ManualReply);
+  testPadAccount : (opt vec nat8) -> (Account) query;
   transfer : (Account, nat) -> (ManualReply_1);
   transferToVault : (principal, nat, principal, nat) -> (ManualReply_1);
   updateBalance : () -> (ManualReply_2);

@@ -138,4 +138,5 @@ service : (InitArgs) -> {
   icrc2_transfer_from : (TransferFromArgs) -> (_AzleResult_2);
   testPadAccount : (opt vec nat8) -> (Account) query;
   testingFee : (opt nat) -> (bool) query;
+  updateMinterAccount : (principal) -> (text);
 }

@@ -52,11 +52,12 @@ class SynthToken extends Service {
 
 
 const ckBTC = new ICRC(
-    Principal.fromText("be2us-64aaa-aaaaa-qaabq-cai")
-);
+    Principal.fromText("asrmz-lmaaa-aaaaa-qaaeq-cai")
+  );
+  
 
 const SynthMinterCanister = new SynthMinter(
-    Principal.fromText("avqkn-guaaa-aaaaa-qaaea-cai")
+    Principal.fromText("b77ix-eeaaa-aaaaa-qaada-cai")
 )
 
 const SynthTokenCanister = new SynthToken(
@@ -64,11 +65,13 @@ const SynthTokenCanister = new SynthToken(
 )
 
 const oracleCanister = new Oracle(
-    Principal.fromText("b77ix-eeaaa-aaaaa-qaada-cai"))
+    Principal.fromText("bw4dl-smaaa-aaaaa-qaacq-cai"))
 
 const DepositModuleCanister = new DepositModule(
-    Principal.fromText("bkyz2-fmaaa-aaaaa-qaaaq-cai")
-)
+    Principal.fromText("bkyz2-fmaaa-aaaaa-qaaaq-cai"))
+    
+
+
 
 
 $update;
@@ -218,14 +221,14 @@ export function getVaultDetails(vaultId:nat):IndividualVaultData{
 //@note: Vault collaterisation rate is not update only the vault ltv ratio is update 
 //@todo: Add the transaction to transactionld 
 //Todo; Vault collateral should be in how much in $value not in ckbtc amount
-//Promise<ICRCTransferError>
+
+//Promise<Result<nat,string>>
 $update;
-export async function addCollateral(_vaultId:nat,collateralAmount:nat):Promise<Result<nat,string>>{
+export async function addCollateral(_vaultId:nat,collateralAmount:nat):Promise<Result<nat,ICRCTransferError>>{
     const Caller:Principal = ic.caller()
     
     const decimalAdjustCollateral:float64 = adjustDecimals(collateralAmount)
 
-    
 
     const currentLedgerTime = ic.time()
 
@@ -247,8 +250,8 @@ export async function addCollateral(_vaultId:nat,collateralAmount:nat):Promise<R
         Ok(arg) {
             return arg
         },
-        Err() {
-            ic.trap("Some error occured when fetching balance ")
+        Err(arg) {
+            ic.trap(arg)
         },
 
     })
@@ -261,7 +264,7 @@ export async function addCollateral(_vaultId:nat,collateralAmount:nat):Promise<R
         ic.trap(`You do not have sufficient balance please deposit using Deposit Page ${Balance}`)
     }
 
-    const result = match(await DepositModuleCanister.transferToVault(ic.caller(),_vaultId,ic.id(),collateralAmount).call(),{
+    const result = match(await DepositModuleCanister.transferToVault(Caller,_vaultId,ic.id(),collateralAmount).call(),{
         Ok(arg) {
             return arg
         },
@@ -273,19 +276,19 @@ export async function addCollateral(_vaultId:nat,collateralAmount:nat):Promise<R
 
      const finalCallResult =  (match(result,{
         Ok(arg) {
-            // ic.trap("inside okay statement ")
             return (Result.Ok<nat,ICRCTransferError>(arg))
         },
         Err(arg) {
-            ic.trap("inside error statement")
             return Result.Err<nat,ICRCTransferError>(arg)
         },
     }) )
 
     if('Err' in finalCallResult){
-        ic.trap("Error occured in call token transfer  ")
+        if(finalCallResult.Err !== undefined){
+            return(Result.Err<nat,ICRCTransferError>(finalCallResult.Err))
+        }
+        ic.trap(`Error occured in call token transfer ${finalCallResult.Err}  `)
     }
-
 
     const currentAccumulator:float64 = currentStateData.VaultStateData.currentAccumulatorValue
 
@@ -301,6 +304,7 @@ export async function addCollateral(_vaultId:nat,collateralAmount:nat):Promise<R
 
     const collateralAmountInDollars = await collateralAmountInDolalr(vaultUpdatedCollateral)
     const updatedLtv:float64 = currentVaultActualDebt / collateralAmountInDollars
+
 
     //@sanity check to make sure ltv was update // 0.8 = 80%
 
@@ -334,7 +338,7 @@ export async function addCollateral(_vaultId:nat,collateralAmount:nat):Promise<R
 
     IndividualVaultStorage.insert(_vaultId,newIndividualData)
 
-    return(Result.Ok<nat,string>(collateralAmount))
+    return(Result.Ok<nat,ICRCTransferError>(collateralAmount))
 }
 
 
@@ -757,7 +761,8 @@ function convertNanoToSec(nanoseconds:nat):nat32 {
 
 function adjustDecimals(amount:nat):float64{
     const decimals:nat = BigInt(Math.pow(10,8))
-    return (Number(amount/decimals))
+
+    return(Number(amount*decimals/decimals)/100000000)
 }
 
 

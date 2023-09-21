@@ -25,16 +25,20 @@ import { Account } from '../synthsBase/types';
 import { padSubAccount } from '../synthsBase/helper';
 
 const ckBTC = new ICRC(
-    Principal.fromText("be2us-64aaa-aaaaa-qaabq-cai")
-);
+    Principal.fromText("asrmz-lmaaa-aaaaa-qaaeq-cai")
+)
+
+//be2us-64aaa-aaaaa-qaabq-cai
 
 const minter = new Minter(
-    Principal.fromText("mqygn-kiaaa-aaaar-qaadq-cai")
+    Principal.fromText("asrmz-lmaaa-aaaaa-qaaeq-cai")
 );
 
 let VaultManagerAddress:Principal
 $update;
 export async function getBalance(of:Principal): Promise<nat> {
+
+    
     const result = await ckBTC
         .icrc1_balance_of({
             owner: ic.id(),
@@ -43,6 +47,8 @@ export async function getBalance(of:Principal): Promise<nat> {
             )
         })
         .call();
+
+
 
     return match(result, {
         Ok: (ok) => ok,
@@ -125,7 +131,9 @@ export async function transferToVault(from:Principal,vaultId:nat,_VaultManagerAd
         owner:_VaultManagerAddress,
         subaccount:Opt.Some(subaccount)
     }
-    
+
+
+
     const result = await ckBTC
         .icrc1_transfer({
             from_subaccount: Opt.Some(

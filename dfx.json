@@ -9,25 +9,17 @@
       "candid": "/home/metadev/SynthifyBackend/src/candidFiles/oracle.did",
       "wasm": ".azle/oracle/oracle.wasm.gz"
     },
-    "ckbtc":{
+    "deposit":{
       "main":"src/DepositModule/ckBTCDeposit.ts",
       "type": "custom",
-      "build": "npx azle ckbtc",
+      "build": "npx azle deposit",
       "root":"src",
       "ts": "src/DepositModule/ckBTCDeposit.ts",
-      "candid": "/home/metadev/SynthifyBackend/src/candidFiles/ckbtc.did",
-      "wasm": ".azle/ckbtc/ckbtc.wasm.gz",
+      "candid": "/home/metadev/SynthifyBackend/src/candidFiles/deposit.did",
+      "wasm": ".azle/deposit/deposit.wasm.gz",
       "optimize":"size"
     },
-    "synbase":{
-      "main":"src/synthsBase/index.ts",
-      "type":"custom",
-      "build": "npx azle synbase",
-      "root":"src/synthsBase",
-      "ts":"src/synthsBase/index.ts",
-      "candid":"/home/metadev/SynthifyBackend/src/candidFiles/synbase.did",
-      "wasm":".azle/synbase/synbase.wasm.gz"
-    },
+
     "vaultmanager":{
       "main":"src/VaultManager/VaultManager.ts",
       "type":"custom",
@@ -38,6 +30,16 @@
       "wasm":".azle/vaultmanager/vaultmanager.wasm.gz",
       "optimize":"size"
     },
+
+    "synbase":{
+    "main":"src/synthsBase/index.ts",
+    "type":"custom",
+    "build": "npx azle synbase",
+    "root":"src/synthsBase",
+    "ts":"src/synthsBase/index.ts",
+    "candid":"/home/metadev/SynthifyBackend/src/candidFiles/synbase.did",
+    "wasm":".azle/synbase/synbase.wasm.gz"
+  },
 
     "synthMinter":{
       "main":"src/synthsBase/TokenMinter/SynthTokenMinter.ts",
@@ -52,3 +54,4 @@
     }
   }
 }
+
