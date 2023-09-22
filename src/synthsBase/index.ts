@@ -16,7 +16,7 @@ export {icrc1_symbol,
 export {constructor,testingTokenState,getCurrentState,updateMinterAccount} from "./init"
 
 export {icrc2_approve} from "./Update/approveMain"
-export {icrc1_transfer} from "./Update/transferMain"
+export {icrc1_transfer,icrc2_transfer_from} from "./Update/transferMain"
 
 // "synbase":{
 //     "main":"src/synthsBase/index.ts",

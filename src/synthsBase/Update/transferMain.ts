@@ -124,17 +124,17 @@ export function icrc2_transfer_from(args:TransferFromArgs): Result<nat,TransferF
         }
     }
 
+    else{
     const result = handle_transfer_from(args,Caller)
     if(result.Err !== undefined){
         return(Result.Err<nat,TransferFromError>(result.Err))
+    }
     }
 
 
 
 
-
-    //@ts-ignore
-    return(Result.Ok<nat,TransferFromError>(currentTokenState.transactions.length))
+    return(Result.Ok<nat,TransferFromError>(BigInt(currentTokenState.transactions.length)))
 
 
 

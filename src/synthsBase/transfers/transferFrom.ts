@@ -84,7 +84,6 @@ export function handle_transfer_from(args: TransferFromArgs, caller: Account): T
 
     const newFrombalance = icrc1_balance_of(fromAccount) - args.amount - fee
 
-    const newTobalance = icrc1_balance_of(toAccount)  + args.amount
 
     //@ts-ignore
     if(currentTokenState.minting_account.Some){
@@ -94,8 +93,11 @@ export function handle_transfer_from(args: TransferFromArgs, caller: Account): T
         AccountBalance.insert(currentTokenState.minting_account.Some,newMintingAccountBalance + fee)
 
     }
+    // ic.trap(`From balance ${newFrombalance} ${newTobalance}`)
 
     AccountBalance.insert(fromAccount,newFrombalance)
+    const newTobalance = icrc1_balance_of(toAccount)  + args.amount
+
     AccountBalance.insert(toAccount,newTobalance)
 
     const currentAllowance = icrc2_allowance({
@@ -109,7 +111,7 @@ export function handle_transfer_from(args: TransferFromArgs, caller: Account): T
 
     const Key:AllowanceKey = {
         from: fromAccount,
-        to: toAccount
+        to: caller
     }
 
 

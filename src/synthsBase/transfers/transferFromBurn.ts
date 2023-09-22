@@ -68,7 +68,7 @@ export function handle_transfer_from_burn(args: TransferFromArgs, caller: Accoun
         //@ts-ignore
         ...currentTokenState,
         //@ts-ignore
-        total_supply:currentTokenState.total_supply - fee,
+        total_supply:currentTokenState.total_supply - fee - args.amount,
         //@ts-ignore
         transactions: [...currentTokenState.transactions,newTransaction]
 
@@ -83,7 +83,6 @@ export function handle_transfer_from_burn(args: TransferFromArgs, caller: Accoun
 
     const newFrombalance = icrc1_balance_of(fromAccount) - args.amount - fee
 
-
     //@ts-ignore
     if(currentTokenState.minting_account.Some){
         //@ts-ignore
@@ -94,6 +93,8 @@ export function handle_transfer_from_burn(args: TransferFromArgs, caller: Accoun
     }
 
     AccountBalance.insert(fromAccount,newFrombalance)
+
+    const updateBalance = icrc1_balance_of(fromAccount)
 
     const currentAllowance = icrc2_allowance({
         account:fromAccount,
@@ -106,7 +107,7 @@ export function handle_transfer_from_burn(args: TransferFromArgs, caller: Accoun
 
     const Key:AllowanceKey = {
         from: fromAccount,
-        to: toAccount
+        to: caller
     }
 
 
