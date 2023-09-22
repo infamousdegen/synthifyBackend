@@ -348,10 +348,10 @@ export async function addCollateral(_vaultId:nat,collateralAmount:nat):Promise<R
 
 //Promise<nat>
 $update;
-export async function borrow(Caller:Principal,_vaultId:nat,__debt:nat):Promise<Result<nat,TransferError>>{
+export async function borrow(_vaultId:nat,__debt:nat):Promise<Result<nat,TransferError>>{
 
 
-    // const Caller:Principal = ic.caller()
+    const Caller:Principal = ic.caller()
     const debt = adjustDecimals(__debt)
     const currentLedgerTime = ic.time()
     //checking whether the vaultId exist 
@@ -397,7 +397,6 @@ export async function borrow(Caller:Principal,_vaultId:nat,__debt:nat):Promise<R
         ic.trap(`You do not enough collateral for this transaction AND LTV VALUE IS ${LTV} and current amount in dollars ${currentCollateralInDollars} and current vault actual debt ${currentVaultActualDebt} `)
     }
 
-    const subAccount:blob = padPrincipalWithZeros(new Uint8Array())
 
     const account:Account = {
         owner:Caller,
@@ -451,11 +450,11 @@ export async function borrow(Caller:Principal,_vaultId:nat,__debt:nat):Promise<R
 
 //@todo: Add this transaction to transaction list 
 //@todo: Assumption the _debtToRepay will be entered in 8 decimals format 
-//@todo: Add the burning mechanism for _debtToRepay
+//@todo: Add the burning mechanism for 
 $update;
 export async function repayDebt(_debtToRepay:nat,_vaultId:nat,_subAccount:Opt<blob>):Promise<nat> {
     const Caller:Principal = ic.caller()
-
+    const debt = adjustDecimals(_debtToRepay)
     
     const currentLedgerTime = ic.time()
     //checking whether the vaultId exist 
@@ -555,7 +554,7 @@ export async function repayDebt(_debtToRepay:nat,_vaultId:nat,_subAccount:Opt<bl
 
     const newAccumulatorValue:float64 = calculatenewAccumulator(currentAccumulator,interestPerSecond,timeinSeconds)
 
-    const normalisedDebt:float64 = normalizeDebt(_debtToRepay,newAccumulatorValue)
+    const normalisedDebt:float64 = normalizeDebt(debt,newAccumulatorValue)
 
     const updatedNormalisedDebt:float64 = currentVaultData.normalisedDebt - normalisedDebt
 

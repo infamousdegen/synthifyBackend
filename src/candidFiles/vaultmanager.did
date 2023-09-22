@@ -79,7 +79,7 @@ type _InlineTransferErrorGenericError = record {
 type _InlineTransferErrorInsufficientFunds = record { balance : nat };
 service : () -> {
   addCollateral : (nat, nat) -> (ManualReply);
-  borrow : (principal, nat, nat) -> (ManualReply_1);
+  borrow : (nat, nat) -> (ManualReply_1);
   calculatenewAccumulator : (float64, float64, nat32) -> (float64) query;
   createVault : (opt vec nat8) -> (nat);
   getBtcPrice : () -> (text);

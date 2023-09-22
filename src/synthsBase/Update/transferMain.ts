@@ -20,6 +20,9 @@ import { handle_burn } from '../transfers/burn';
 import { handle_transfer } from '../transfers/transfer';
 import { icrc2_allowance } from '../query/queryFunctions';
 
+import { handle_transfer_from_burn } from '../transfers/transferFromBurn';
+import { handle_transfer_from } from '../transfers/transferFrom';
+
 $update
 export function icrc1_transfer(args: TransferArgs): Result<nat,TransferError> {
     const from: Account = padSubAccount({
@@ -107,16 +110,27 @@ export function icrc2_transfer_from(args:TransferFromArgs): Result<nat,TransferF
     //@ts-ignore
     const validate_transferFrom_result = validate_transfer_from(args,Caller,currentTokenState,currentLedgerTime)
 
-    if(validate_transferFrom_result.err){
+    if(validate_transferFrom_result.err!==undefined){
         return {
             Err:validate_transferFrom_result.err
         }
     }
 
-    
-    // if (to_is_minting_account === true) {
-    //     return handle_burn(args, from);
-    // }
+    if(is_minting_account(args.to.owner)){
+        const result = handle_transfer_from_burn(args,Caller)
+
+        if(result.Err !==undefined){
+            return(Result.Err<nat,TransferFromError>(result.Err))
+        }
+    }
+
+    const result = handle_transfer_from(args,Caller)
+    if(result.Err !== undefined){
+        return(Result.Err<nat,TransferFromError>(result.Err))
+    }
+
+
+
 
 
     //@ts-ignore
