@@ -28,10 +28,22 @@ type IndividualVaultData = record {
 };
 type ManualReply = variant { Ok : nat; Err : ICRCTransferError };
 type ManualReply_1 = variant { Ok : nat; Err : TransferError };
+type ManualReply_2 = variant { Ok : nat; Err : TransferFromError };
 type SupportedStandard = record { url : text; name : text };
 type TransferError = variant {
   GenericError : _InlineTransferErrorGenericError;
   TemporarilyUnavailable;
+  BadBurn : _InlineTransferErrorBadBurn;
+  Duplicate : _InlineTransferErrorDuplicate;
+  BadFee : _InlineTransferErrorBadFee;
+  CreatedInFuture : _InlineTransferErrorCreatedInFuture;
+  TooOld;
+  InsufficientFunds : _InlineTransferErrorInsufficientFunds;
+};
+type TransferFromError = variant {
+  GenericError : _InlineTransferErrorGenericError;
+  TemporarilyUnavailable;
+  InsufficientAllowance : _InlineTransferFromErrorInsufficientAllowance;
   BadBurn : _InlineTransferErrorBadBurn;
   Duplicate : _InlineTransferErrorDuplicate;
   BadFee : _InlineTransferErrorBadFee;
@@ -77,6 +89,7 @@ type _InlineTransferErrorGenericError = record {
   error_code : nat;
 };
 type _InlineTransferErrorInsufficientFunds = record { balance : nat };
+type _InlineTransferFromErrorInsufficientAllowance = record { allowance : nat };
 service : () -> {
   addCollateral : (nat, nat) -> (ManualReply);
   borrow : (nat, nat) -> (ManualReply_1);
@@ -97,7 +110,7 @@ service : () -> {
   icrc2_allowance : (AllowanceArgs) -> (Allowance) query;
   init : (VaultStorageData) -> (_AzleResult);
   normalizeDebt : (float64, float64) -> (float64) query;
-  repayDebt : (nat, nat, opt vec nat8) -> (nat);
+  repayDebt : (nat, nat, opt vec nat8) -> (ManualReply_2);
   resetVault : () -> (text);
   testInit : () -> (_AzleResult);
   testPadAccount : (opt vec nat8) -> (Account) query;

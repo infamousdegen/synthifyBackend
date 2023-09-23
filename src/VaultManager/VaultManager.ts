@@ -7,13 +7,13 @@ import { Record,Principal,$update,Result, CallResult,ic, Service, serviceUpdate,
     serviceQuery,Opt } from "azle";
 import { initDate,VaultStorageData,IndividualVaultData,VaultStateData,VaultMetadata,AdministrativeData } from "./types";
 import { VaultStorage,IndividualVaultStorage,UserVaultIdMapping } from "./storage";
-import {TransferError,AllowanceArgs,Allowance,Account} from "../synthsBase/types"
+import {TransferError,AllowanceArgs,Allowance,Account, TransferFromArgs} from "../synthsBase/types"
 import {calculateNewAccumulator} from './helpers'
 
 import {ICRC,ICRCTransferError,ICRCTransferArgs} from 'azle/canisters/icrc'
 import { padPrincipalWithZeros, padSubAccount } from "../synthsBase/helper";
 
-
+import { TransferFromError } from "../synthsBase/types";
 //This means that 1 tokens = 1*10^8
 const decimalplaces:nat = 8n
 
@@ -39,8 +39,6 @@ class DepositModule extends Service {
 class SynthMinter extends Service {
     @serviceUpdate
     mintToken:(amount:nat,account:Account,memo:Opt<blob>) => CallResult<Result<nat,TransferError>>
-    @serviceUpdate
-    burnToken:(amount:nat) => CallResult<Result<nat,TransferError>>
 }
 
 class SynthToken extends Service {
@@ -48,6 +46,8 @@ class SynthToken extends Service {
     icrc2_allowance:(allowance_args:AllowanceArgs) => CallResult<Allowance>
     @serviceQuery
     icrc1_balance_of:(Account:Account) => CallResult<nat>
+    @serviceUpdate
+    icrc2_transfer_from:(args:TransferFromArgs) => CallResult<Result<nat,TransferFromError>>
 }
 
 
@@ -347,6 +347,7 @@ export async function addCollateral(_vaultId:nat,collateralAmount:nat):Promise<R
 //@todo: Update the 
 
 //Promise<nat>
+//Promise<Result<nat,TransferError>>
 $update;
 export async function borrow(_vaultId:nat,__debt:nat):Promise<Result<nat,TransferError>>{
 
@@ -452,8 +453,8 @@ export async function borrow(_vaultId:nat,__debt:nat):Promise<Result<nat,Transfe
 //@todo: Assumption the _debtToRepay will be entered in 8 decimals format 
 //@todo: Add the burning mechanism for 
 $update;
-export async function repayDebt(_debtToRepay:nat,_vaultId:nat,_subAccount:Opt<blob>):Promise<nat> {
-    const Caller:Principal = ic.caller()
+export async function repayDebt(_debtToRepay:nat,_vaultId:nat,__subAccount:Opt<blob>):Promise<Result<nat,TransferFromError>> {
+    const Caller:Account = padSubAccount({owner:ic.caller(),subaccount:__subAccount})
     const debt = adjustDecimals(_debtToRepay)
     
     const currentLedgerTime = ic.time()
@@ -465,8 +466,8 @@ export async function repayDebt(_debtToRepay:nat,_vaultId:nat,_subAccount:Opt<bl
         None:() => ic.trap("Please create a vault  before you borrow")
     })
 
-    if(currentVaultData.primaryOwner !== Caller){
-        ic.trap("You are not the vault owner ")
+    if(currentVaultData.primaryOwner.toString() !== ic.caller().toString()){
+        ic.trap(`You are not the vault owner ${currentVaultData.primaryOwner.toString()}`)
     }
 
     
@@ -476,13 +477,10 @@ export async function repayDebt(_debtToRepay:nat,_vaultId:nat,_subAccount:Opt<bl
         },
         None:() => ic.trap("Error occured while query state data ")
     })
-    let subAccount:blob = padPrincipalWithZeros(new Uint8Array())
 
-    if(_subAccount.Some != undefined){
-        subAccount = padPrincipalWithZeros( _subAccount.Some)
-    }
 
-    const balance:nat = match(await SynthTokenCanister.icrc1_balance_of({owner:Caller,subaccount:Opt.Some(subAccount)}).call(),{
+
+    const balance:nat = match(await SynthTokenCanister.icrc1_balance_of(Caller).call(),{
         Ok(arg) {
             return arg
         },
@@ -496,16 +494,12 @@ export async function repayDebt(_debtToRepay:nat,_vaultId:nat,_subAccount:Opt<bl
     }
 
     const AlllowanceArgs:AllowanceArgs = {
-        account:{
-            owner:ic.caller(),
-            subaccount:Opt.Some(subAccount)
-        },
+        account:Caller,
         spender:{
             owner:SynthMinterCanister.canisterId,
             subaccount:Opt.None
         }
     }
-
     const allowanceCallResult = match(await SynthTokenCanister.icrc2_allowance(AlllowanceArgs).call(),{
         Ok(arg) {
             return(arg)
@@ -524,7 +518,22 @@ export async function repayDebt(_debtToRepay:nat,_vaultId:nat,_subAccount:Opt<bl
             ic.trap(`Allowance time has passed ${ic.time()} `)
         }
     }
-    const callResult = match(await SynthMinterCanister.burnToken(_debtToRepay).call(),{
+
+
+    const transferFrom:TransferFromArgs = {
+        spender_subaccount:Opt.None,
+        from:Caller,
+        to:{
+            owner:SynthMinterCanister.canisterId,
+            subaccount:Opt.None
+        },
+        amount:_debtToRepay,
+        fee:Opt.None,
+        memo:Opt.None,
+        created_at_time:Opt.None
+    }
+
+    const transferFromResult = match(await SynthTokenCanister.icrc2_transfer_from(transferFrom).call(),{
         Ok(arg) {
             return arg
         },
@@ -533,17 +542,9 @@ export async function repayDebt(_debtToRepay:nat,_vaultId:nat,_subAccount:Opt<bl
         },
     })
 
-    const burnResult = match(callResult,{
-        Ok(arg) {
-            return(arg)
-        },
-        Err(arg) {
-            ic.trap(`${arg}`)
-        },
-    })
+    if(transferFromResult.Err !== undefined) {
+        return Result.Err<nat,TransferFromError>(transferFromResult.Err)
 
-    if(burnResult!=_debtToRepay){
-        ic.trap(`Invalid Burn Amount ${burnResult}`)
     }
 
     const currentAccumulator:float64 = currentStateData.VaultStateData.currentAccumulatorValue
@@ -591,7 +592,7 @@ export async function repayDebt(_debtToRepay:nat,_vaultId:nat,_subAccount:Opt<bl
 
     VaultStorage.insert(1n,VaultStorageData)
 
-    return(_debtToRepay)
+    return(Result.Ok<nat,TransferFromError>(_debtToRepay))
 }
 
 
