@@ -133,7 +133,7 @@ export function icrc2_transfer_from(args:TransferFromArgs): Result<nat,TransferF
 
 
 
-
+    //@ts-ignore
     return(Result.Ok<nat,TransferFromError>(BigInt(currentTokenState.transactions.length)))
 
 

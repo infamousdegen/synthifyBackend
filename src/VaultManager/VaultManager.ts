@@ -452,8 +452,9 @@ export async function borrow(_vaultId:nat,__debt:nat):Promise<Result<nat,Transfe
 //@todo: Add this transaction to transaction list 
 //@todo: Assumption the _debtToRepay will be entered in 8 decimals format 
 //@todo: Add the burning mechanism for 
+//Result<nat,TransferFromError>
 $update;
-export async function repayDebt(_debtToRepay:nat,_vaultId:nat,__subAccount:Opt<blob>):Promise<Result<nat,TransferFromError>> {
+export async function repayDebt(_vaultId:nat,_debtToRepay:nat,__subAccount:Opt<blob>):Promise<Result<nat,TransferFromError>> {
     const Caller:Account = padSubAccount({owner:ic.caller(),subaccount:__subAccount})
     const debt = adjustDecimals(_debtToRepay)
     
@@ -463,7 +464,7 @@ export async function repayDebt(_debtToRepay:nat,_vaultId:nat,__subAccount:Opt<b
         Some(arg) { 
             return arg
         },
-        None:() => ic.trap("Please create a vault  before you borrow")
+        None:() => ic.trap(`Please create a vault  before you borrow ${_vaultId}`)
     })
 
     if(currentVaultData.primaryOwner.toString() !== ic.caller().toString()){
@@ -532,7 +533,6 @@ export async function repayDebt(_debtToRepay:nat,_vaultId:nat,__subAccount:Opt<b
         memo:Opt.None,
         created_at_time:Opt.None
     }
-
     const transferFromResult = match(await SynthTokenCanister.icrc2_transfer_from(transferFrom).call(),{
         Ok(arg) {
             return arg
@@ -543,6 +543,8 @@ export async function repayDebt(_debtToRepay:nat,_vaultId:nat,__subAccount:Opt<b
     })
 
     if(transferFromResult.Err !== undefined) {
+ 
+
         return Result.Err<nat,TransferFromError>(transferFromResult.Err)
 
     }
@@ -591,7 +593,6 @@ export async function repayDebt(_debtToRepay:nat,_vaultId:nat,__subAccount:Opt<b
     }
 
     VaultStorage.insert(1n,VaultStorageData)
-
     return(Result.Ok<nat,TransferFromError>(_debtToRepay))
 }
 
