@@ -53,23 +53,23 @@ class SynthToken extends Service {
 
 
 const ckBTC = new ICRC(
-    Principal.fromText("asrmz-lmaaa-aaaaa-qaaeq-cai")
+    Principal.fromText("mxzaz-hqaaa-aaaar-qaada-cai")
   );
   
 
 const SynthMinterCanister = new SynthMinter(
-    Principal.fromText("b77ix-eeaaa-aaaaa-qaada-cai")
+    Principal.fromText("i4q3p-qyaaa-aaaal-qcdqq-cai")
 )
 
 const SynthTokenCanister = new SynthToken(
-    Principal.fromText("by6od-j4aaa-aaaaa-qaadq-cai")
+    Principal.fromText("i3r53-5aaaa-aaaal-qcdqa-cai")
 )
 
 const oracleCanister = new Oracle(
-    Principal.fromText("bw4dl-smaaa-aaaaa-qaacq-cai"))
+    Principal.fromText("nhkh6-wiaaa-aaaal-qcdpq-cai"))
 
 const DepositModuleCanister = new DepositModule(
-    Principal.fromText("br5f7-7uaaa-aaaaa-qaaca-cai"))
+    Principal.fromText("ivtqt-gqaaa-aaaal-qcdra-cai"))
     
 
 
@@ -93,10 +93,13 @@ export function testInit():Result<string,string>{
 
     const vaultStateData:VaultStateData = {
         interestFeePercentage: 0.05,
-        CollateralPrincipal: Principal.fromText("be2us-64aaa-aaaaa-qaabq-cai"),
-        DebtTokenPrincipal:Principal.fromText("be2us-64aaa-aaaaa-qaabq-cai"),
+        CollateralPrincipal: ckBTC.canisterId,
+
+        DebtTokenPrincipal:SynthTokenCanister.canisterId,
+
         priimary_owner:Principal.fromText("2vxsx-fae"),
-        oracle:Principal.fromText("b77ix-eeaaa-aaaaa-qaada-cai"),
+        
+        oracle:oracleCanister.canisterId,
         currentAccumulatorValue:1,
         lastAccumulatorUpdateTime_seconds:convertNanoToSec(ic.time()),
         interestPerSecond:1.0000000015471259578632124490458629971738336463351819964451
