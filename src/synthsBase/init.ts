@@ -147,6 +147,36 @@ return("done")
 
 }
 
+
+$update;
+export function updatePrimaryAccount(account:Principal):string{
+
+    let currentTokenState:State;
+
+
+      match(TokenState.get(1n),{
+        Some:(arg)=>{
+            currentTokenState = arg
+            const newState:State = {
+        
+                ...currentTokenState,
+                primary_account:Opt.Some({
+                    owner:account,
+                    subaccount:Opt.None
+                })
+        
+            }
+
+            TokenState.insert(1n,newState)
+        },
+        None:() => {
+            return({TemporarilyUnavailable:null})
+        }
+    })
+return("done")
+
+
+}
 // $update;
 // export function testingBalance(_account:Account,amount:nat):string{
 //     let account:Account = _account

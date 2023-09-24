@@ -29,6 +29,7 @@ type IndividualVaultData = record {
 type ManualReply = variant { Ok : nat; Err : ICRCTransferError };
 type ManualReply_1 = variant { Ok : nat; Err : TransferError };
 type ManualReply_2 = variant { Ok : nat; Err : TransferFromError };
+type ManualReply_3 = variant { Ok : float64; Err : TransferError };
 type SupportedStandard = record { url : text; name : text };
 type TransferError = variant {
   GenericError : _InlineTransferErrorGenericError;
@@ -114,5 +115,5 @@ service : () -> {
   resetVault : () -> (text);
   testInit : () -> (_AzleResult);
   testPadAccount : (opt vec nat8) -> (Account) query;
-  withdrawCollateral : (nat, nat, Account) -> (float64);
+  withdrawCollateral : (nat, nat, Account) -> (ManualReply_3);
 }

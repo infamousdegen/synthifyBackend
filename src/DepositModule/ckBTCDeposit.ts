@@ -25,13 +25,13 @@ import { Account } from '../synthsBase/types';
 import { padSubAccount } from '../synthsBase/helper';
 
 const ckBTC = new ICRC(
-    Principal.fromText("asrmz-lmaaa-aaaaa-qaaeq-cai")
+    Principal.fromText("mxzaz-hqaaa-aaaar-qaada-cai")
 )
 
 //be2us-64aaa-aaaaa-qaabq-cai
 
 const minter = new Minter(
-    Principal.fromText("asrmz-lmaaa-aaaaa-qaaeq-cai")
+    Principal.fromText("mqygn-kiaaa-aaaar-qaadq-cai")
 );
 
 let VaultManagerAddress:Principal
@@ -57,12 +57,12 @@ export async function getBalance(of:Principal): Promise<nat> {
 }
 
 $update;
-export async function updateBalance(): Promise<UpdateBalanceResult> {
+export async function updateBalance(of:Principal): Promise<UpdateBalanceResult> {
     const result = await minter
         .update_balance({
             owner: Opt.Some(ic.id()),
             subaccount: Opt.Some(
-                padPrincipalWithZeros(ic.caller().toUint8Array())
+                padPrincipalWithZeros(of.toUint8Array())
             )
         })
         .call();
@@ -74,12 +74,12 @@ export async function updateBalance(): Promise<UpdateBalanceResult> {
 }
 
 $update;
-export async function getBtcDepositAddress(): Promise<string> {
+export async function getBtcDepositAddress(of:Principal): Promise<string> {
     const result = await minter
         .get_btc_address({
             owner: Opt.Some(ic.id()),
             subaccount: Opt.Some(
-                padPrincipalWithZeros(ic.caller().toUint8Array())
+                padPrincipalWithZeros(of.toUint8Array())
             )
         })
         .call();
@@ -92,29 +92,29 @@ export async function getBtcDepositAddress(): Promise<string> {
 
 
 // @todo: This method should not be exposed to everyone 
-$update;
-export async function transfer(
-    to: Account,
-    amount: nat
-): Promise<Variant<{ Ok: nat; Err: ICRCTransferError }>> {
-    const result = await ckBTC
-        .icrc1_transfer({
-            from_subaccount: Opt.Some(
-                padPrincipalWithZeros(ic.caller().toUint8Array())
-            ),
-            to: padSubAccount(to),
-            amount,
-            fee: Opt.Some(10n),
-            memo: Opt.None,
-            created_at_time: Opt.None
-        })
-        .call();
+// $update;
+// export async function transfer(
+//     to: Account,
+//     amount: nat
+// ): Promise<Variant<{ Ok: nat; Err: ICRCTransferError }>> {
+//     const result = await ckBTC
+//         .icrc1_transfer({
+//             from_subaccount: Opt.Some(
+//                 padPrincipalWithZeros(ic.caller().toUint8Array())
+//             ),
+//             to: padSubAccount(to),
+//             amount,
+//             fee: Opt.Some(10n),
+//             memo: Opt.None,
+//             created_at_time: Opt.None
+//         })
+//         .call();
 
-    return match(result, {
-        Ok: (ok) => ok,
-        Err: (err) => ic.trap(err)
-    });
-}
+//     return match(result, {
+//         Ok: (ok) => ok,
+//         Err: (err) => ic.trap(err)
+//     });
+// }
 // from:Principal,vaultId:nat,_VaultManagerAddress:Principal,_amount:nat
 //Promise<Result<nat,ICRCTransferError>
 
@@ -166,24 +166,7 @@ export async function transferToVault(from:Principal,vaultId:nat,_VaultManagerAd
 }
 
 
-$update;
-export async function  mintTokens(account:Account,amount:nat):Promise<Variant<{ Ok: nat; Err: ICRCTransferError }>> {
-    const result = await ckBTC
-    .icrc1_transfer({
-        from_subaccount: Opt.None,
-        to: account,
-        amount:amount,
-        fee: Opt.Some(10n),
-        memo: Opt.None,
-        created_at_time: Opt.None
-    })
-    .call();
 
-return match(result, {
-    Ok: (ok) => ok,
-    Err: (err) => ic.trap(err)
-});
-}
 
 function padPrincipalWithZeros(blob: blob): blob {
     let newUin8Array = new Uint8Array(32);

@@ -13,7 +13,7 @@ export {icrc1_symbol,
     testPadAccount
 } from './query/queryFunctions';
 
-export {constructor,testingTokenState,getCurrentState,updateMinterAccount} from "./init"
+export {constructor,testingTokenState,getCurrentState,updateMinterAccount,updatePrimaryAccount} from "./init"
 
 export {icrc2_approve} from "./Update/approveMain"
 export {icrc1_transfer,icrc2_transfer_from} from "./Update/transferMain"

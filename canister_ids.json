@@ -1,0 +1,14 @@
+{
+  "deposit": {
+    "ic": "ivtqt-gqaaa-aaaal-qcdra-cai"
+  },
+  "oracle": {
+    "ic": "nhkh6-wiaaa-aaaal-qcdpq-cai"
+  },
+  "synbase": {
+    "ic": "i3r53-5aaaa-aaaal-qcdqa-cai"
+  },
+  "synthMinter": {
+    "ic": "i4q3p-qyaaa-aaaal-qcdqq-cai"
+  }
+}

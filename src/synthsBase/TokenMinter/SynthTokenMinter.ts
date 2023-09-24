@@ -16,7 +16,7 @@ class SynthToken extends ICRC {
 
 
 const SynthTokenCanister = new SynthToken(
-    Principal.fromText("by6od-j4aaa-aaaaa-qaadq-cai")
+    Principal.fromText("i3r53-5aaaa-aaaal-qcdqa-cai")
 )
 
 let VaultManager:Principal

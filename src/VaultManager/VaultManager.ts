@@ -14,6 +14,7 @@ import {ICRC,ICRCTransferError,ICRCTransferArgs} from 'azle/canisters/icrc'
 import { padPrincipalWithZeros, padSubAccount } from "../synthsBase/helper";
 
 import { TransferFromError } from "../synthsBase/types";
+import { IcrcTransferError } from "@dfinity/ledger";
 //This means that 1 tokens = 1*10^8
 const decimalplaces:nat = 8n
 
@@ -497,7 +498,7 @@ export async function repayDebt(_vaultId:nat,_debtToRepay:nat,__subAccount:Opt<b
     const AlllowanceArgs:AllowanceArgs = {
         account:Caller,
         spender:{
-            owner:SynthMinterCanister.canisterId,
+            owner:ic.id(),
             subaccount:Opt.None
         }
     }
@@ -599,7 +600,7 @@ export async function repayDebt(_vaultId:nat,_debtToRepay:nat,__subAccount:Opt<b
 
 $update;
 //@note: the amount has to be entered in decimal adjusted form 8 decimals 
-export async function withdrawCollateral(_vaultId:nat,_amountToWithdraw:nat,_toAccount:Account):Promise<float64> {
+export async function withdrawCollateral(_vaultId:nat,_amountToWithdraw:nat,_toAccount:Account):Promise<Result<float64,ICRCTransferError>> {
     const Caller:Principal = ic.caller()
 
     const toAccount:Account = padSubAccount(_toAccount) 
@@ -615,8 +616,8 @@ export async function withdrawCollateral(_vaultId:nat,_amountToWithdraw:nat,_toA
         None:() => ic.trap("Please create a vault  before you borrow")
     })
 
-    if(currentVaultData.primaryOwner !== Caller){
-        ic.trap("You are not the vault owner ")
+    if(currentVaultData.primaryOwner.toString() !== Caller.toString()){
+        ic.trap(`You are not the vault owner ${currentVaultData.primaryOwner.toString()}`)
     }
 
     
@@ -652,36 +653,35 @@ export async function withdrawCollateral(_vaultId:nat,_amountToWithdraw:nat,_toA
     }
 
     const subaccount:blob = bigNumberToUint8Array(vaultId)
-    const result = await ckBTC
+    const result = match(await ckBTC
         .icrc1_transfer({
             from_subaccount: Opt.Some(
                 padPrincipalWithZeros(subaccount)
             ),
             to: toAccount,
             amount:_amountToWithdraw,
-            fee: Opt.None,
+            fee: Opt.Some(10n),
             memo: Opt.None,
             created_at_time: Opt.None
         })
-        .call();
+        .call(),{
+            Ok(arg) {
+                return arg
+            },
+            Err(arg) {
+                ic.trap(arg)
+            },
+        });
 
-    const callResut =     match(result, {
-            Ok: (ok) => ok,
-            Err: (err) => ic.trap(err)
-        })
+        if(result.Err !== undefined){
+            return Result.Err<float64,ICRCTransferError>(result.Err)
+        }
+    
 
-    const amountTransferred:nat = match(callResut,{
-        Ok(arg) {
-            return arg
-        },
-        Err(arg) {
-            ic.trap(`${arg}`)
-        },
-    })
 
-    if(amountTransferred != _amountToWithdraw){
-        ic.trap("Amount Transferred is not the same ")
-    }
+
+
+
 
     const individualVaultData:IndividualVaultData = {
         ...currentVaultData,
@@ -707,7 +707,7 @@ export async function withdrawCollateral(_vaultId:nat,_amountToWithdraw:nat,_toA
 
     VaultStorage.insert(1n,VaultStorageData)
 
-    return(amountToWithdraw)
+    return(Result.Ok<float64,ICRCTransferError>(amountToWithdraw))
 }
 $update;
 //Function to get the price  from the oracle 
