@@ -68,7 +68,7 @@ const oracleCanister = new Oracle(
     Principal.fromText("bw4dl-smaaa-aaaaa-qaacq-cai"))
 
 const DepositModuleCanister = new DepositModule(
-    Principal.fromText("bkyz2-fmaaa-aaaaa-qaaaq-cai"))
+    Principal.fromText("br5f7-7uaaa-aaaaa-qaaca-cai"))
     
 
 
