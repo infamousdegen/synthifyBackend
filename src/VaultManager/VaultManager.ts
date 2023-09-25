@@ -728,14 +728,53 @@ export async function collateralAmountInDolalr(amount:float64):Promise<float64>{
     return(amount * currentBtcPrice)
 }
 
+
+$query;
+export async function getVaultActualDebt(vaultId:nat):Promise<float64>{
+    const currentLedgerTime = ic.time()
+    //checking whether the vaultId exist 
+    const currentVaultData = match ( IndividualVaultStorage.get(vaultId),{
+        Some(arg) { 
+            return arg
+        },
+        None:() => ic.trap("Please create a vault  before you query")
+    })
+
+
+
+    
+    const currentStateData = match(VaultStorage.get(1n),{
+        Some(arg) {
+            return arg
+        },
+        None:() => ic.trap("Error occured while query state data ")
+    })
+
+    const currentAccumulator:float64 = currentStateData.VaultStateData.currentAccumulatorValue
+
+    const interestPerSecond:float64 = currentStateData.VaultStateData.interestPerSecond
+
+    const timeinSeconds:nat32 = convertNanoToSec(currentLedgerTime) - currentStateData.VaultStateData.lastAccumulatorUpdateTime_seconds
+
+    const newAccumulatorValue:float64 = calculatenewAccumulator(currentAccumulator,interestPerSecond,timeinSeconds)
+
+    const updatedNormalisedDebt:float64 = currentVaultData.normalisedDebt 
+
+    const currentVaultActualDebt:float64 = updatedNormalisedDebt * newAccumulatorValue
+
+    return(currentVaultActualDebt)
+}
+
 //Should be entered to 15 decimal precision 
 //will retu
+
 
 $query;
 export function calculatenewAccumulator(currentAcumulator:float64,interestPerSecond:float64,timeInSeconds:nat32):float64 {
     const newAccumulatorValue = calculateNewAccumulator(currentAcumulator,interestPerSecond,timeInSeconds)
     return (newAccumulatorValue)
 }
+
 
 
 $query;
