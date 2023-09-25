@@ -429,7 +429,7 @@ export function validate_approve(
         }
 
 
-        if((isValidBalance(Caller,currentFee,args.amount) !== true)){
+        if((isValidBalance(Caller,currentFee,0n) !== true)){
             return{
                 err:
                 {

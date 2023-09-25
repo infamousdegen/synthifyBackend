@@ -412,20 +412,18 @@ export async function borrow(_vaultId:nat,__debt:nat):Promise<Result<nat,Transfe
             return arg
         },
         Err(arg) {
+            
+            ic.trap("issue whcih mint token")
             ic.trap(arg)
         },
     })
 
-    const mintAmount = match(result,{
-        Ok(arg) {
-            return(arg)
-        },
-        Err(arg) {
-            ic.trap(`${arg}`)
-        },
 
-    
-    })
+
+    if(result.Err !== undefined){
+        return(Result.Err<nat,TransferError>(result.Err))
+        ic.trap("issue ")
+    }
 
 
     const updateIndividualData:IndividualVaultData = {
