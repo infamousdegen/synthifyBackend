@@ -6,7 +6,7 @@
       "build": "npx azle oracle",
       "root": "src",
       "ts": "src/OracleModule/oracle.ts",
-      "candid": "/home/metadev/SynthifyBackend/src/candidFiles/oracle.did",
+      "candid": "src/candidFiles/oracle.did",
       "wasm": ".azle/oracle/oracle.wasm.gz"
     },
     "deposit":{
@@ -15,7 +15,7 @@
       "build": "npx azle deposit",
       "root":"src",
       "ts": "src/DepositModule/ckBTCDeposit.ts",
-      "candid": "/home/metadev/SynthifyBackend/src/candidFiles/deposit.did",
+      "candid": "src/candidFiles/deposit.did",
       "wasm": ".azle/deposit/deposit.wasm.gz",
       "optimize":"size"
     },
@@ -26,7 +26,7 @@
       "build": "npx azle vaultmanager",
       "root":"src",
       "ts":"src/VaultManager/VaultManager.ts",
-      "candid":"/home/metadev/SynthifyBackend/src/candidFiles/vaultmanager.did",
+      "candid":"src/candidFiles/vaultmanager.did",
       "wasm":".azle/vaultmanager/vaultmanager.wasm.gz",
       "optimize":"size"
     },
@@ -37,7 +37,7 @@
     "build": "npx azle synbase",
     "root":"src/synthsBase",
     "ts":"src/synthsBase/index.ts",
-    "candid":"/home/metadev/SynthifyBackend/src/candidFiles/synbase.did",
+    "candid":"/src/candidFiles/synbase.did",
     "wasm":".azle/synbase/synbase.wasm.gz"
   },
 
@@ -47,7 +47,7 @@
       "build":"npx azle synthMinter",
       "root":"src",
       "ts":"src/synthsBase/TokenMinter/SynthTokenMinter.ts",
-      "candid":"/home/metadev/SynthifyBackend/src/candidFiles/synthMinter.did",
+      "candid":"src/candidFiles/synthMinter.did",
       "wasm":".azle/synthMinter/synthMinter.wasm.gz",
       "optimize":"size"
 
